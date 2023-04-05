@@ -116,7 +116,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;CURL_STATICLIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>D:\2023 컴동\Machine-Messiah\Machine-Messiah\thirdParty\openai;D:\2023 컴동\Machine-Messiah\Machine-Messiah\thirdParty\curl\include;D:\2023 컴동\Machine-Messiah\Machine-Messiah\thirdParty\openssl\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>D:\2023 컴동\Machine-Messiah\Machine-Messiah\thirdParty\openai;D:\2023 컴동\Machine-Messiah\Machine-Messiah\thirdParty\curl\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
