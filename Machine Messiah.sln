@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.32413.511
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Machine Messiah", "Machine Messiah\Machine Messiah.vcxproj", "{C5E81396-705A-4FB1-A11E-C8740569262C}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Machine-Messiah", "Machine-Messiah\Machine-Messiah.vcxproj", "{D6E33008-B066-46F9-8F52-2F5F31A140D5}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -13,14 +13,14 @@ Global
 		Release|x86 = Release|x86
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{C5E81396-705A-4FB1-A11E-C8740569262C}.Debug|x64.ActiveCfg = Debug|x64
-		{C5E81396-705A-4FB1-A11E-C8740569262C}.Debug|x64.Build.0 = Debug|x64
-		{C5E81396-705A-4FB1-A11E-C8740569262C}.Debug|x86.ActiveCfg = Debug|Win32
-		{C5E81396-705A-4FB1-A11E-C8740569262C}.Debug|x86.Build.0 = Debug|Win32
-		{C5E81396-705A-4FB1-A11E-C8740569262C}.Release|x64.ActiveCfg = Release|x64
-		{C5E81396-705A-4FB1-A11E-C8740569262C}.Release|x64.Build.0 = Release|x64
-		{C5E81396-705A-4FB1-A11E-C8740569262C}.Release|x86.ActiveCfg = Release|Win32
-		{C5E81396-705A-4FB1-A11E-C8740569262C}.Release|x86.Build.0 = Release|Win32
+		{D6E33008-B066-46F9-8F52-2F5F31A140D5}.Debug|x64.ActiveCfg = Debug|x64
+		{D6E33008-B066-46F9-8F52-2F5F31A140D5}.Debug|x64.Build.0 = Debug|x64
+		{D6E33008-B066-46F9-8F52-2F5F31A140D5}.Debug|x86.ActiveCfg = Debug|Win32
+		{D6E33008-B066-46F9-8F52-2F5F31A140D5}.Debug|x86.Build.0 = Debug|Win32
+		{D6E33008-B066-46F9-8F52-2F5F31A140D5}.Release|x64.ActiveCfg = Release|x64
+		{D6E33008-B066-46F9-8F52-2F5F31A140D5}.Release|x64.Build.0 = Release|x64
+		{D6E33008-B066-46F9-8F52-2F5F31A140D5}.Release|x86.ActiveCfg = Release|Win32
+		{D6E33008-B066-46F9-8F52-2F5F31A140D5}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
