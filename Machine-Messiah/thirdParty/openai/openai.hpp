@@ -59,6 +59,7 @@ struct Response {
 };
 
 // Simple curl Session inspired by CPR
+typedef size_t(*writeFunc)(void*, size_t, size_t, std::string*);
 class Session {
 public:
     Session(bool throw_exception) : throw_exception_{throw_exception} {
@@ -103,8 +104,16 @@ public:
     Response makeRequest(const std::string& contentType = "");
     std::string easyEscape(const std::string& text);
 
+    void setWriteFunction(writeFunc customFuncPtr=nullptr)
+    {
+        if (customFuncPtr == nullptr)
+            writeFunction = writeFunctionDefault;
+        else
+            writeFunction = customFuncPtr;
+    }
+
 private:
-    static size_t writeFunction(void* ptr, size_t size, size_t nmemb, std::string* data) {
+    static size_t writeFunctionDefault(void* ptr, size_t size, size_t nmemb, std::string* data) {
         data->append((char*) ptr, size * nmemb);
         return size * nmemb;
     }
@@ -120,6 +129,8 @@ private:
 
     bool        throw_exception_;
     std::mutex  mutex_request_;
+
+    writeFunc writeFunction = writeFunctionDefault;
 };
 
 inline void Session::setBody(const std::string& data) { 
@@ -383,6 +394,8 @@ public:
 
     void setMultiformPart(const std::string& filepath, const std::map<std::string, std::string>& fields) { session_.setMultiformPart(filepath, fields); }
 
+    void setWriteFunc(writeFunc customFuncPtr) { session_.setWriteFunction(customFuncPtr); }
+
     Json post(const std::string& suffix, const std::string& data, const std::string& contentType) {
         setParameters(suffix, data, contentType);
         auto response = session_.postPrepare(contentType);
@@ -549,6 +562,12 @@ inline Json post(const std::string& suffix, const Json& json) {
 
 inline Json get(const std::string& suffix/*, const Json& json*/) {
     return instance().get(suffix);
+}
+
+// setWriteFunction
+inline void set_func(writeFunc customFunPtr=nullptr)
+{
+    instance().setWriteFunc(customFunPtr);
 }
 
 // Helper functions to get category structures instance()
@@ -736,6 +755,9 @@ using _detail::instance;
 // Generic methods
 using _detail::post;
 using _detail::get;
+
+// set write function
+using _detail::set_func;
 
 // Helper categories access
 using _detail::model;
