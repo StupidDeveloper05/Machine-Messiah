@@ -116,7 +116,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;CURL_STATICLIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>D:\2023 컴동\Machine-Messiah\Machine-Messiah\thirdParty\openai;D:\2023 컴동\Machine-Messiah\Machine-Messiah\thirdParty\curl\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>D:\2023 컴동\Machine-Messiah\Machine-Messiah\thirdParty\openai;D:\2023 컴동\Machine-Messiah\Machine-Messiah\thirdParty\curl\include;D:\2023 컴동\Machine-Messiah\Machine-Messiah\thirdParty\json;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp20</LanguageStandard>
     </ClCompile>
     <Link>
@@ -134,7 +134,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;CURL_STATICLIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>D:\2023 컴동\Machine-Messiah\Machine-Messiah\thirdParty\openai;D:\2023 컴동\Machine-Messiah\Machine-Messiah\thirdParty\curl\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>D:\2023 컴동\Machine-Messiah\Machine-Messiah\thirdParty\openai;D:\2023 컴동\Machine-Messiah\Machine-Messiah\thirdParty\curl\include;D:\2023 컴동\Machine-Messiah\Machine-Messiah\thirdParty\json;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp20</LanguageStandard>
     </ClCompile>
     <Link>
@@ -148,6 +148,11 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="openai_api.hpp" />
+    <ClCompile Include="thirdParty\json\jsoncpp.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="utils.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
