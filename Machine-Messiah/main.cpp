@@ -10,6 +10,7 @@ Json::Value messages;
 size_t writeFunctionForChat(void* ptr, size_t size, size_t nmemb, std::string* data) 
 {
     std::string json = (char*)ptr;
+	json = json.substr(0, size * nmemb); // 버그 해결: 데이터가 중복되지 않게 콜백함수로 들어온 사이즈 만큼 데이터를 슬라이싱 함.
     std::string str_buf;
     std::istringstream iss(json);
 
@@ -21,9 +22,9 @@ size_t writeFunctionForChat(void* ptr, size_t size, size_t nmemb, std::string* d
     if (json.find("data") != std::string::npos)
     {
         while (getline(iss, str_buf, '\n')) {
-            try
+			try
             {
-                if (str_buf.find("data") != std::string::npos)
+				if (str_buf.find("data") != std::string::npos)
                 {
 					std::string generated_response = str_buf.substr(str_buf.find("{"), str_buf.rfind("}") + 1);
 					bool parsing_successful = reader->parse(generated_response.c_str(), generated_response.c_str() + generated_response.size(), &root, &errors);
@@ -45,7 +46,7 @@ size_t writeFunctionForChat(void* ptr, size_t size, size_t nmemb, std::string* d
         }
     }
     
-    data->append((char*)ptr, size * nmemb);
+    data->append(json.c_str(), size * nmemb);
     return size * nmemb;
 }
 
@@ -53,7 +54,7 @@ size_t writeFunctionForChat(void* ptr, size_t size, size_t nmemb, std::string* d
 int main()
 {
 	bool successed = OpenAI::Init(
-		"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", 
+		"API KEY", 
 		"org-1XK4EGAKbk9RBmHca7zf6HLK"
 	); 
 	if (!successed)

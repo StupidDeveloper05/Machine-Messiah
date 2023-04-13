@@ -111,6 +111,7 @@ namespace OpenAI {
 
 			curl_easy_setopt(HttpContext->curl, CURLOPT_WRITEFUNCTION, HttpContext->write_func);
 			curl_easy_setopt(HttpContext->curl, CURLOPT_WRITEDATA, &response);
+			curl_easy_setopt(HttpContext->curl, CURLOPT_FOLLOWLOCATION, 0L);
 
 			HttpContext->res = curl_easy_perform(HttpContext->curl);
 			if (HttpContext->res == CURLE_OK) {
