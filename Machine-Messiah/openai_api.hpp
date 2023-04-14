@@ -12,7 +12,8 @@ namespace OpenAI {
 
 	enum class EndPoint
 	{
-		Chat
+		Chat,
+		Embedding
 	};
 
 	typedef size_t(*WriteFunc)(void*, size_t, size_t, std::string*);
@@ -41,7 +42,7 @@ namespace OpenAI {
 
 	private:
 		static size_t writeFunctionDefault(void* ptr, size_t size, size_t nmemb, std::string* data) {
-			data->append((char*)ptr, size * nmemb);
+			data->append(std::string((char*)ptr).substr(0, size * nmemb).c_str(), size * nmemb);
 			return size * nmemb;
 		}
 
@@ -90,6 +91,9 @@ namespace OpenAI {
 			case EndPoint::Chat:
 				endpoint = "chat/completions";
 				break;
+			case EndPoint::Embedding:
+				endpoint = "embeddings";
+				break;
 			default:
 				break;
 			}
@@ -111,7 +115,6 @@ namespace OpenAI {
 
 			curl_easy_setopt(HttpContext->curl, CURLOPT_WRITEFUNCTION, HttpContext->write_func);
 			curl_easy_setopt(HttpContext->curl, CURLOPT_WRITEDATA, &response);
-			curl_easy_setopt(HttpContext->curl, CURLOPT_FOLLOWLOCATION, 0L);
 
 			HttpContext->res = curl_easy_perform(HttpContext->curl);
 			if (HttpContext->res == CURLE_OK) {
@@ -123,6 +126,10 @@ namespace OpenAI {
 				if (parse_successed) {
 					return root;
 				}
+			}
+			else
+			{
+				std::cout << curl_easy_strerror(HttpContext->res) << std::endl;
 			}
 		}
 
