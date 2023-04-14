@@ -16,6 +16,9 @@
     <Filter Include="gpt">
       <UniqueIdentifier>{6b750831-6e22-4f78-9362-2941af63e8e6}</UniqueIdentifier>
     </Filter>
+    <Filter Include="core">
+      <UniqueIdentifier>{6f42f8c5-1085-4130-b880-506ecb743f0a}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -27,10 +30,16 @@
     <ClCompile Include="openai_api.hpp">
       <Filter>gpt</Filter>
     </ClCompile>
+    <ClCompile Include="NLBFR.cpp">
+      <Filter>core</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="utils.h">
       <Filter>gpt</Filter>
+    </ClInclude>
+    <ClInclude Include="NLBFR.h">
+      <Filter>core</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

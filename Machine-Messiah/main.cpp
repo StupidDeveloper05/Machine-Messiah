@@ -1,100 +1,28 @@
 #include <iostream>
 #include <sstream>
-#include <thread>
 
-#include <vector>
-#include <map>
-
-#include "utils.h"
 #include "openai_api.hpp"
+#include "NLBFR.h"
 
-std::map<std::string, std::vector<double>> lists;
-std::vector<std::string> functions = {
-	"불을 켠다-온도의 변화는 없다.주변이 밝아지는 효과가 있다.",
-	"불을 끈다-온도의 변화는 없다.주변이 어두워지는 효과가 있다.",
-	"문을 연다-주변이 탁 트이게 되고, 온도가 내려가는 효과가 있다.",
-	"문을 닫는다-주변이 막히게 되고, 온도는 유지되거나 올라가는 효과가 있다.",
-};
-
-std::vector<double> getUniqueVector(Json::Value& arr)
-{
-	std::vector<double> result;
-	for (auto it = arr.begin(); it != arr.end(); ++it)
-	{
-		result.push_back(it->asDouble());
-	}
-	return result;
-}
-
-double cosine_similarity(const std::vector<double>& v1, const std::vector<double>& v2) {
-	double dot_product = 0.0;
-	double norm_v1 = 0.0;
-	double norm_v2 = 0.0;
-	int n = v1.size();  // 벡터의 차원
-
-	// 내적 계산
-	for (int i = 0; i < n; i++) {
-		dot_product += v1[i] * v2[i];
-	}
-
-	// 각 벡터의 노름(norm) 계산
-	for (int i = 0; i < n; i++) {
-		norm_v1 += pow(v1[i], 2);
-		norm_v2 += pow(v2[i], 2);
-	}
-	norm_v1 = sqrt(norm_v1);
-	norm_v2 = sqrt(norm_v2);
-
-	// 코사인 유사성 계산
-	return dot_product / (norm_v1 * norm_v2);
-}
-
-std::string getBestFunc(const std::string& utf8)
-{
-	Json::Value json_body;
-	json_body["model"] = "text-embedding-ada-002";
-	json_body["input"] = utf8;
-
-	// http post request
-	auto result = OpenAI::Create(OpenAI::EndPoint::Embedding, json_body);
-	auto uniqueVector = getUniqueVector(result["data"][0]["embedding"]);
-	
-	std::string best_fname;
-	double best_score = 0.0;
-	for (auto& [key, value] : lists)
-	{
-		double score = cosine_similarity(value, uniqueVector);
-		if (score > best_score)
-		{
-			best_score = score;
-			best_fname = key;
-		}
-		std::cout << key << " : " << score << std::endl;
-	}
-	return best_fname;
-}
 
 int main()
 {
 	bool successed = OpenAI::Init(
-		"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", 
+		"api key",
 		"org-1XK4EGAKbk9RBmHca7zf6HLK"
-	); 
+	);
 	if (!successed)
 		return -1;
 
-	std::cout << "Preparing..." << std::endl;
-	for (auto& fname : functions)
-	{
-		Json::Value json_body;
-		json_body["model"] = "text-embedding-ada-002";
-		json_body["input"] = AnsiToUtf8(fname).c_str();
-
-		// http post request
-		auto result = OpenAI::Create(OpenAI::EndPoint::Embedding, json_body);
-		lists[fname] = getUniqueVector(result["data"][0]["embedding"]);
-	}
-	std::cout << "End!" << std::endl;
+	NLBFR nlbfr(R"(
+		TurnOntheLight: 온도에는 변화를 주지 않고, 주변을 밝게 만들어 주는 기능을 하여 물체가 잘 보이게 하는 기능도 한다.
+		TurnOfftheLight: 온도에는 변화를 주지 않고, 주변을 어둡게 만들어 주는 기능을 하여 물체가 잘 안 보이게 하는 기능도 한다.
+		OpenTheDoor: 문을 열고 온도를 낮추어 주는 기능을 한다. 반드시 온도는 낮아진다.
+		CloseTheDoor: 문을 닫고 온도를 높여 주는 기능을 한다. 반드시 온도는 높아진다.
+		위는 내가 가진 함수들의 이름과 설명이야. 이 함수들은 오직 설명에 쓰인 기능만 수행해.
+		예를 들어 온도를 높이려면 CloseTheDoor함수를, 온도를 낮추려면 OpenTheDoor, 밝게 만들려면 TurnOntheLight, 어둡게 하려면 TurnOfftheLight함수를 쓸 수 있어.
+		너는 함수의 이름과 설명에 근거하여 질문에 대답을 해야해. 질문을 할테니 대기해줘.
+	)");
 
 	while (true)
 	{
@@ -102,6 +30,6 @@ int main()
 		std::string input;
 		getline(std::cin, input);
 
-		std::cout << getBestFunc(AnsiToUtf8(input)) << std::endl;
+		nlbfr.process_input(input);
 	}
 }
