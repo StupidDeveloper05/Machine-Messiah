@@ -19,7 +19,7 @@ NLBFR::NLBFR(const std::string& descriptions)
 void NLBFR::process_input(const std::string& input)
 {
 	// 질문을 완성시킴
-	messages.append(OpenAI::CreateMessage("user", AnsiToUtf8("\"" + input + "\"" + "라는 말이 나오는 상황을 해결하는데 도움을 주는 함수를 위에서 추천해줘.").c_str()));
+	messages.append(OpenAI::CreateMessage("user", AnsiToUtf8("\"" + input + "\"" + "라는 말이 나오는 상황을 해결해줄 함수를 위에서 추천해줘.").c_str()));
 	
 	Json::Value json_body;
 	json_body["model"] = "gpt-3.5-turbo";

@@ -5,6 +5,8 @@ VisualStudioVersion = 16.0.32413.511
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Machine-Messiah", "Machine-Messiah\Machine-Messiah.vcxproj", "{D6E33008-B066-46F9-8F52-2F5F31A140D5}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "OpenAI", "OpenAI\OpenAI.vcxproj", "{BA4CEFB5-DB9F-4179-989F-E2E0823C9645}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -21,6 +23,14 @@ Global
 		{D6E33008-B066-46F9-8F52-2F5F31A140D5}.Release|x64.Build.0 = Release|x64
 		{D6E33008-B066-46F9-8F52-2F5F31A140D5}.Release|x86.ActiveCfg = Release|Win32
 		{D6E33008-B066-46F9-8F52-2F5F31A140D5}.Release|x86.Build.0 = Release|Win32
+		{BA4CEFB5-DB9F-4179-989F-E2E0823C9645}.Debug|x64.ActiveCfg = Debug|x64
+		{BA4CEFB5-DB9F-4179-989F-E2E0823C9645}.Debug|x64.Build.0 = Debug|x64
+		{BA4CEFB5-DB9F-4179-989F-E2E0823C9645}.Debug|x86.ActiveCfg = Debug|Win32
+		{BA4CEFB5-DB9F-4179-989F-E2E0823C9645}.Debug|x86.Build.0 = Debug|Win32
+		{BA4CEFB5-DB9F-4179-989F-E2E0823C9645}.Release|x64.ActiveCfg = Release|x64
+		{BA4CEFB5-DB9F-4179-989F-E2E0823C9645}.Release|x64.Build.0 = Release|x64
+		{BA4CEFB5-DB9F-4179-989F-E2E0823C9645}.Release|x86.ActiveCfg = Release|Win32
+		{BA4CEFB5-DB9F-4179-989F-E2E0823C9645}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

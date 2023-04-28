@@ -1,4 +1,4 @@
-#include "openai_api.hpp"
+#include "OpenAI.h"
 
 // file NLBFR : Natural Language Based Function Recommender (자연어기반 함수 추천기)
 class NLBFR

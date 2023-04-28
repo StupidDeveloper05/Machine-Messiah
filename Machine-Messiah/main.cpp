@@ -1,7 +1,7 @@
 #include <iostream>
 #include <sstream>
 
-#include "openai_api.hpp"
+#include "OpenAI.h"
 #include "NLBFR.h"
 
 

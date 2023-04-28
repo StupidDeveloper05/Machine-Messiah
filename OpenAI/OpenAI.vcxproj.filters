@@ -13,27 +13,18 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
-    <Filter Include="gpt">
-      <UniqueIdentifier>{6b750831-6e22-4f78-9362-2941af63e8e6}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="core">
-      <UniqueIdentifier>{6f42f8c5-1085-4130-b880-506ecb743f0a}</UniqueIdentifier>
-    </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="main.cpp">
+    <ClInclude Include="OpenAI.h">
+      <Filter>소스 파일</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="OpenAI.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
-    <ClCompile Include="NLBFR.cpp">
-      <Filter>core</Filter>
+    <ClCompile Include="jsoncpp.cpp">
+      <Filter>소스 파일</Filter>
     </ClCompile>
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="utils.h">
-      <Filter>gpt</Filter>
-    </ClInclude>
-    <ClInclude Include="NLBFR.h">
-      <Filter>core</Filter>
-    </ClInclude>
   </ItemGroup>
 </Project>
