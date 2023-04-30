@@ -30,10 +30,6 @@ namespace OpenAI {
 	{
 		mainUrl = "https://api.openai.com/v1/";
 	}
-	OpenAI_Post_Helper::~OpenAI_Post_Helper()
-	{
-		curl_slist_free_all(headers);
-	}
 
 	OpenAI_Post_Helper* OpenAI_Post_Helper::Get()
 	{
@@ -41,9 +37,10 @@ namespace OpenAI {
 		return &instance;
 	}
 
-	void OpenAI_Post_Helper::AppendHeader(const std::string& header)
+	void OpenAI_Post_Helper::Init(const std::string& api_key, const std::string& _authorizaion)
 	{
-		headers = curl_slist_append(headers, header.c_str());
+		apiKey = api_key;
+		authorization = _authorizaion;
 	}
 
 	Json::Value OpenAI_Post_Helper::Create(EndPoint eType, Json::Value& json_body)
@@ -58,10 +55,15 @@ namespace OpenAI {
 		{
 		case EndPoint::Chat:
 			endpoint = "chat/completions";
+			contentType = "application/json";
 			break;
 		case EndPoint::Embedding:
 			endpoint = "embeddings";
+			contentType = "application/json";
 			break;
+		case EndPoint::Whisper:
+			endpoint = "audio/transcriptions";
+			contentType = "multipart/form-data";
 		default:
 			break;
 		}
@@ -74,15 +76,44 @@ namespace OpenAI {
 		Json::FastWriter writer;
 		std::string body_str = writer.write(json_body);
 
+		// header settings
+		curl_slist* headers = NULL;
+		headers = curl_slist_append(headers, std::string("Authorization: Bearer " + apiKey).c_str());
+		headers = curl_slist_append(headers, std::string("OpenAI-Organization: " + authorization).c_str());
+		headers = curl_slist_append(headers, std::string("Content-Type: " + contentType).c_str());
+		
+		// process mutipart form data
+		curl_mime* mime_form = NULL;
+		if (contentType == "multipart/form-data")
+		{
+			headers = curl_slist_append(headers, "Expect:");
+			mime_form = curl_mime_init(HttpContext->curl);
+			
+			curl_mimepart* field = NULL;			
+			field = curl_mime_addpart(mime_form);
+			curl_mime_name(field, "file");
+			curl_mime_filedata(field, json_body["file"].asCString());
+
+			field = curl_mime_addpart(mime_form);
+			curl_mime_name(field, "model");
+			curl_mime_data(field, json_body["model"].asCString(), CURL_ZERO_TERMINATED);
+
+			curl_easy_setopt(HttpContext->curl, CURLOPT_MIMEPOST, mime_form);
+		}
+		else
+		{
+			curl_easy_setopt(HttpContext->curl, CURLOPT_POSTFIELDSIZE, body_str.length());
+			curl_easy_setopt(HttpContext->curl, CURLOPT_POSTFIELDS, body_str.c_str());
+		}
+
 		curl_easy_setopt(HttpContext->curl, CURLOPT_URL, (mainUrl + endpoint).c_str());
 		curl_easy_setopt(HttpContext->curl, CURLOPT_HTTPHEADER, headers);
 
-		curl_easy_setopt(HttpContext->curl, CURLOPT_POST, 1L);
-		curl_easy_setopt(HttpContext->curl, CURLOPT_POSTFIELDSIZE, body_str.length());
-		curl_easy_setopt(HttpContext->curl, CURLOPT_POSTFIELDS, body_str.c_str());
-
 		curl_easy_setopt(HttpContext->curl, CURLOPT_WRITEFUNCTION, HttpContext->write_func);
 		curl_easy_setopt(HttpContext->curl, CURLOPT_WRITEDATA, &response);
+
+		// debugging
+		//curl_easy_setopt(HttpContext->curl, CURLOPT_VERBOSE, 1L);
 
 		HttpContext->res = curl_easy_perform(HttpContext->curl);
 		if (HttpContext->res == CURLE_OK) {
@@ -99,6 +130,9 @@ namespace OpenAI {
 		{
 			std::cout << curl_easy_strerror(HttpContext->res) << std::endl;
 		}
+
+		// free mime form
+		curl_mime_free(mime_form);
 	}
 
 	bool Init(const std::string& api_key, const std::string& authorization)
@@ -111,9 +145,7 @@ namespace OpenAI {
 			return false;
 		}
 
-		PostHelper->AppendHeader("Content-Type: application/json");
-		PostHelper->AppendHeader("Authorization: Bearer " + api_key);
-		PostHelper->AppendHeader("OpenAI-Organization: " + authorization);
+		PostHelper->Init(api_key, authorization);		
 		return true;
 	}
 

@@ -13,7 +13,8 @@ namespace OpenAI {
 	enum class EndPoint
 	{
 		Chat,
-		Embedding
+		Embedding,
+		Whisper
 	};
 
 	typedef size_t(*WriteFunc)(void*, size_t, size_t, std::string*);
@@ -41,12 +42,12 @@ namespace OpenAI {
 	{
 	public:
 		OpenAI_Post_Helper();
-		~OpenAI_Post_Helper();
+		~OpenAI_Post_Helper() = default;
 
 		static OpenAI_Post_Helper* Get();
 
 	public:
-		void AppendHeader(const std::string& header);
+		void Init(const std::string& api_key, const std::string& _authorizaion);
 
 		Json::Value Create(EndPoint eType, Json::Value& json_body);
 
@@ -56,11 +57,16 @@ namespace OpenAI {
 		Json::Value MakeRequest(Json::Value& json_body);
 
 	private:
+		std::string response;
+
+		// post setting
 		std::string mainUrl;
 		std::string endpoint;
+		std::string contentType;
 
-		std::string response;
-		curl_slist* headers;
+		// authorization setting
+		std::string apiKey;
+		std::string authorization;
 	};
 
 	bool Init(const std::string& api_key, const std::string& authorization);
