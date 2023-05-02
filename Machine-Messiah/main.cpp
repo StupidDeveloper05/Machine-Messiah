@@ -2,9 +2,11 @@
 #include <fstream>
 #include <sstream>
 
-#include "OpenAI.h"
 //#include "NLBFR.h"
 #include "utils.h"
+
+#include "OpenAI.h"
+#include "MicRecord.h"
 
 std::string reply;
 Json::Value messages;
@@ -56,23 +58,31 @@ size_t writeFunctionForChat(void* ptr, size_t size, size_t nmemb, std::string* d
 int main()
 {
 	bool successed = OpenAI::Init(
-		" api key",
+		"api key",
 		"org-1XK4EGAKbk9RBmHca7zf6HLK"
 	);
 	if (!successed)
 		return -1;
 
+	MIC::MicRecord mic(1, 16000, 512);
+	mic.Start();
+	std::cout << "Start Recording" << std::endl;
+	int a;
+	std::cin >> a;
+	mic.Pause();
+	std::cout << "End Recording" << std::endl;
+
 	// create json body
 	Json::Value json_body;
 	json_body["model"] = "whisper-1";
-	json_body["file"] = "test.m4a";
+	json_body["file"] = "output.wav";
 
 	// http post request
-	auto result = OpenAI::Create(OpenAI::EndPoint::Whisper, json_body);
+	auto result = OpenAI::Create(OpenAI::EndPoint::Whisper, json_body);	
 	std::cout << Utf8ToAnsi(result["text"].asCString()) << std::endl;
 
 	//HttpContext->SetWriteFunction(writeFunctionForChat);
-
+	//
 	//while (true)
 	//{
 	//	std::cout << "User : ";
