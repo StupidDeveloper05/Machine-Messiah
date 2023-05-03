@@ -3,7 +3,7 @@
 
 namespace MIC {
 
-	MicRecord::MicRecord(int _channels, int _sample_rate, int _fpb)
+	MicRecord::MicRecord(int _channels, int _sample_rate, int _fpb, const char* _outputName)
 		: m_channels(_channels)
 		, m_sample_rate(_sample_rate)
 		, m_fpb(_fpb)
@@ -15,11 +15,10 @@ namespace MIC {
 		PaError err = Pa_Initialize();
 		_process_error("Error initializing PortAudio: ", err);
 
-		m_wavFile = sf_open("output.wav", SFM_WRITE, &m_sfinfo);
+		m_wavFile = sf_open(_outputName, SFM_WRITE, &m_sfinfo);
 
 		err = Pa_OpenDefaultStream(&m_stream, m_channels, 0, paFloat32, m_sample_rate, m_fpb, recordingCallback, m_wavFile);
 		_process_error("Error opening recording stream: ", err);
-
 	}
 	
 	MicRecord::~MicRecord()

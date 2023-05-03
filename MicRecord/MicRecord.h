@@ -11,7 +11,7 @@ namespace MIC {
 	class MicRecord
 	{
 	public:
-		MicRecord(int _channels, int _sample_rate, int _fpb);
+		MicRecord(int _channels, int _sample_rate, int _fpb, const char* _outputName="output.wav");
 		~MicRecord();
 
 	public:

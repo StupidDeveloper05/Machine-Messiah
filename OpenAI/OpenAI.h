@@ -14,6 +14,7 @@ namespace OpenAI {
 	{
 		Chat,
 		Embedding,
+		Image,
 		Whisper
 	};
 

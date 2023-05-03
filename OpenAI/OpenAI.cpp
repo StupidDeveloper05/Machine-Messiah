@@ -61,6 +61,10 @@ namespace OpenAI {
 			endpoint = "embeddings";
 			contentType = "application/json";
 			break;
+		case EndPoint::Image:
+			endpoint = "images/generations";
+			contentType = "application/json";
+			break;
 		case EndPoint::Whisper:
 			endpoint = "audio/transcriptions";
 			contentType = "multipart/form-data";

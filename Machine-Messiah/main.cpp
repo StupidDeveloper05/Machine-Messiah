@@ -54,6 +54,31 @@ size_t writeFunctionForChat(void* ptr, size_t size, size_t nmemb, std::string* d
 	return size * nmemb;
 }
 
+void micRecord()
+{
+	// Microphone capturing
+	MIC::MicRecord mic(1, 16000, 128);
+
+	std::cout << "Press Enter to Speak";
+	std::cin.ignore();
+	mic.Start();
+
+	std::cout << "Press Enter to Stop" << std::endl;
+	std::cin.ignore();
+	mic.Pause();
+}
+
+std::string speach_to_text()
+{
+	// create json body
+	Json::Value json_body;
+	json_body["model"] = "whisper-1";
+	json_body["file"] = "output.wav";
+
+	// http post request
+	auto result = OpenAI::Create(OpenAI::EndPoint::Whisper, json_body);
+	return result["text"].asCString();
+}
 
 int main()
 {
@@ -62,44 +87,32 @@ int main()
 		"org-1XK4EGAKbk9RBmHca7zf6HLK"
 	);
 	if (!successed)
-		return -1;
+		return -1;	
 
-	MIC::MicRecord mic(1, 16000, 512);
-	mic.Start();
-	std::cout << "Start Recording" << std::endl;
-	int a;
-	std::cin >> a;
-	mic.Pause();
-	std::cout << "End Recording" << std::endl;
+	HttpContext->SetWriteFunction(writeFunctionForChat);
+	
+	while (true)
+	{
+		/*std::string input;
+		getline(std::cin, input);*/
 
-	// create json body
-	Json::Value json_body;
-	json_body["model"] = "whisper-1";
-	json_body["file"] = "output.wav";
+		micRecord();
+		std::string utf8 = speach_to_text();
+		
+		std::cout << "User : ";
+		std::cout << Utf8ToAnsi(utf8) << std::endl;
 
-	// http post request
-	auto result = OpenAI::Create(OpenAI::EndPoint::Whisper, json_body);	
-	std::cout << Utf8ToAnsi(result["text"].asCString()) << std::endl;
+		// create message
+		//std::string utf8 = AnsiToUtf8(input);
+		messages.append(OpenAI::CreateMessage("user", utf8.c_str()));
 
-	//HttpContext->SetWriteFunction(writeFunctionForChat);
-	//
-	//while (true)
-	//{
-	//	std::cout << "User : ";
-	//	std::string input;
-	//	getline(std::cin, input);
+		// create json body
+		Json::Value json_body;
+		json_body["model"] = "gpt-3.5-turbo";
+		json_body["messages"] = messages;
+		json_body["stream"] = true;
 
-	//	// create message
-	//	std::string utf8 = AnsiToUtf8(input);
-	//	messages.append(OpenAI::CreateMessage("user", utf8.c_str()));
-
-	//	// create json body
-	//	Json::Value json_body;
-	//	json_body["model"] = "gpt-3.5-turbo";
-	//	json_body["messages"] = messages;
-	//	json_body["stream"] = true;
-
-	//	// http post request
-	//	auto result = OpenAI::Create(OpenAI::EndPoint::Chat, json_body);
-	//}
+		// http post request
+		auto result = OpenAI::Create(OpenAI::EndPoint::Chat, json_body);
+	}
 }
