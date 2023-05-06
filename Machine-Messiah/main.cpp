@@ -11,7 +11,7 @@
 std::string reply;
 Json::Value messages;
 
-size_t writeFunctionForChat(void* ptr, size_t size, size_t nmemb, std::string* data)
+size_t writeFunctionForChat(void* ptr, size_t size, size_t nmemb, void* data)
 {
 	std::string json = (char*)ptr;
 	json = json.substr(0, size * nmemb); // 버그 해결: 데이터가 중복되지 않게 콜백함수로 들어온 사이즈 만큼 데이터를 슬라이싱 함.
@@ -50,7 +50,7 @@ size_t writeFunctionForChat(void* ptr, size_t size, size_t nmemb, std::string* d
 		}
 	}
 
-	data->append(json.c_str(), size * nmemb);
+	PostHelper->Get()->response.append(json.c_str(), size * nmemb);
 	return size * nmemb;
 }
 
@@ -83,7 +83,7 @@ std::string speach_to_text()
 int main()
 {
 	bool successed = OpenAI::Init(
-		"api key",
+		"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",
 		"org-1XK4EGAKbk9RBmHca7zf6HLK"
 	);
 	if (!successed)
@@ -93,17 +93,18 @@ int main()
 	
 	while (true)
 	{
-		/*std::string input;
-		getline(std::cin, input);*/
+		std::cout << "User : ";
+		std::string input;
+		getline(std::cin, input);
 
-		micRecord();
+		/*micRecord();
 		std::string utf8 = speach_to_text();
 		
 		std::cout << "User : ";
-		std::cout << Utf8ToAnsi(utf8) << std::endl;
+		std::cout << Utf8ToAnsi(utf8) << std::endl;*/
 
 		// create message
-		//std::string utf8 = AnsiToUtf8(input);
+		std::string utf8 = AnsiToUtf8(input);
 		messages.append(OpenAI::CreateMessage("user", utf8.c_str()));
 
 		// create json body
@@ -113,6 +114,7 @@ int main()
 		json_body["stream"] = true;
 
 		// http post request
+		std::cout << "AI : ";
 		auto result = OpenAI::Create(OpenAI::EndPoint::Chat, json_body);
 	}
 }

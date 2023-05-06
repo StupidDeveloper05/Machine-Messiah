@@ -18,7 +18,7 @@ namespace OpenAI {
 		Whisper
 	};
 
-	typedef size_t(*WriteFunc)(void*, size_t, size_t, std::string*);
+	typedef size_t(*WriteFunc)(void*, size_t, size_t, void*);
 	class OpenAI_Http_Context
 	{
 	public:
@@ -30,7 +30,7 @@ namespace OpenAI {
 	void SetWriteFunction(WriteFunc customFuncPtr = nullptr);
 
 	private:
-		static size_t writeFunctionDefault(void* ptr, size_t size, size_t nmemb, std::string* data);
+		static size_t writeFunctionDefault(void* ptr, size_t size, size_t nmemb, void* data);
 
 	public:
 		CURL* curl;
@@ -51,14 +51,18 @@ namespace OpenAI {
 		void Init(const std::string& api_key, const std::string& _authorizaion);
 
 		Json::Value Create(EndPoint eType, Json::Value& json_body);
+		void SetUserPointer(void* _userPtr);
 
 	private:
 		void SetEndPoint(EndPoint endPointType);
 
 		Json::Value MakeRequest(Json::Value& json_body);
 
-	private:
+	public:
 		std::string response;
+
+	private:
+		void* user_ptr;
 
 		// post setting
 		std::string mainUrl;

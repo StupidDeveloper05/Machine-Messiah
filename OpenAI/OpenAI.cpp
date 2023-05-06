@@ -21,8 +21,8 @@ namespace OpenAI {
 			write_func = writeFunctionDefault;
 	}
 
-	size_t OpenAI_Http_Context::writeFunctionDefault(void* ptr, size_t size, size_t nmemb, std::string* data) {
-		data->append(std::string((char*)ptr).substr(0, size * nmemb).c_str(), size * nmemb);
+	size_t OpenAI_Http_Context::writeFunctionDefault(void* ptr, size_t size, size_t nmemb, void* data) {
+		PostHelper->Get()->response.append(std::string((char*)ptr).substr(0, size * nmemb).c_str(), size * nmemb);
 		return size * nmemb;
 	}
 
@@ -73,6 +73,11 @@ namespace OpenAI {
 		}
 	}
 
+	void OpenAI_Post_Helper::SetUserPointer(void* _userPtr)
+	{
+		user_ptr = _userPtr;
+	}
+
 	Json::Value OpenAI_Post_Helper::MakeRequest(Json::Value& json_body)
 	{
 		response.clear();
@@ -114,7 +119,7 @@ namespace OpenAI {
 		curl_easy_setopt(HttpContext->curl, CURLOPT_HTTPHEADER, headers);
 
 		curl_easy_setopt(HttpContext->curl, CURLOPT_WRITEFUNCTION, HttpContext->write_func);
-		curl_easy_setopt(HttpContext->curl, CURLOPT_WRITEDATA, &response);
+		curl_easy_setopt(HttpContext->curl, CURLOPT_WRITEDATA, user_ptr);
 
 		// debugging
 		//curl_easy_setopt(HttpContext->curl, CURLOPT_VERBOSE, 1L);
@@ -128,6 +133,10 @@ namespace OpenAI {
 			bool parse_successed = reader->parse(response.c_str(), response.c_str() + response.size(), &root, &errors);
 			if (parse_successed) {
 				return root;
+			}
+			else
+			{
+				return Json::Value{"error"};
 			}
 		}
 		else
