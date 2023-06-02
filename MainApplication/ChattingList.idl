@@ -1,0 +1,10 @@
+// Copyright (c) Microsoft Corporation and Contributors.
+// Licensed under the MIT License.
+namespace MainApplication
+{
+    [default_interface]
+    runtimeclass ChattingList : Microsoft.UI.Xaml.Controls.Page
+    {
+        ChattingList();
+    }
+}

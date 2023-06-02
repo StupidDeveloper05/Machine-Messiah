@@ -1,0 +1,38 @@
+<!-- Copyright (c) Microsoft Corporation and Contributors. -->
+<!-- Licensed under the MIT License. -->
+
+<Page
+    x:Class="MainApplication.ChattingList"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:MainApplication"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d">
+
+    <Page.Resources>
+        <DataTemplate x:Key="ChatThumbnail" x:DataType="local:ChatThumbnail">
+            <StackPanel Orientation="Vertical">
+                <TextBlock FontSize="22" Text="{x:Bind Title}" Margin="0,4,0,4"/>
+                <TextBlock FontSize="14" Foreground="{StaticResource SystemChromeHighColor}" Text="{x:Bind DateToStr()}" Margin="0,0,0,4"/>
+            </StackPanel>
+        </DataTemplate>
+    </Page.Resources>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="32"/>
+            <RowDefinition />
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="0.4*"/>
+            <ColumnDefinition Width="0.6*"/>
+        </Grid.ColumnDefinitions>
+        <ListView Grid.Row="1" Grid.Column="0" ItemTemplate="{StaticResource ChatThumbnail}" x:Name="ChatList" SelectionMode="Extended" SelectionChanged="ChatList_SelectionChanged"/>
+        <StackPanel Grid.Row="1" Grid.Column="1">
+            <TextBlock x:Name="selectedChatTitle"/>
+        </StackPanel>
+        <!--<WebView2 x:Name="mdViewer" Grid.Row="1" Grid.Column="1" DefaultBackgroundColor="{StaticResource SolidBackgroundFillColorBaseAlt}" Source="http://localhost:5000"/>-->
+    </Grid>
+
+</Page>

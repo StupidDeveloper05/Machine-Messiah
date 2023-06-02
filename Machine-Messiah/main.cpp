@@ -83,7 +83,7 @@ std::string speach_to_text()
 int main()
 {
 	bool successed = OpenAI::Init(
-		"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",
+		"api - key",
 		"org-1XK4EGAKbk9RBmHca7zf6HLK"
 	);
 	if (!successed)

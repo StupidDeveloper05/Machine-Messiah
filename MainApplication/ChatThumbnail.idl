@@ -1,0 +1,11 @@
+namespace MainApplication
+{
+	runtimeclass ChatThumbnail : Windows.UI.Xaml.Data.INotifyPropertyChanged
+	{
+		ChatThumbnail(String Title, Int64 Date);
+		String Title;
+		Int64 Date;
+
+		String DateToStr();
+	}
+}
