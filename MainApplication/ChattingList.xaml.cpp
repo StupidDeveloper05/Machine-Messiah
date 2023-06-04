@@ -34,7 +34,6 @@ namespace winrt::MainApplication::implementation
             for (int i = 0; i < e.AddedItems().Size(); ++i)
             {
                 m_selectedChat = e.AddedItems().GetAt(i).as<ChatThumbnail>();
-                selectedChatTitle().Text(m_selectedChat.Title());
             }
         }
         if (e.RemovedItems().Size() > 0)

@@ -25,14 +25,11 @@
             <RowDefinition />
         </Grid.RowDefinitions>
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="0.4*"/>
-            <ColumnDefinition Width="0.6*"/>
+            <ColumnDefinition Width="0.3*"/>
+            <ColumnDefinition Width="0.7*"/>
         </Grid.ColumnDefinitions>
         <ListView Grid.Row="1" Grid.Column="0" ItemTemplate="{StaticResource ChatThumbnail}" x:Name="ChatList" SelectionMode="Extended" SelectionChanged="ChatList_SelectionChanged"/>
-        <StackPanel Grid.Row="1" Grid.Column="1">
-            <TextBlock x:Name="selectedChatTitle"/>
-        </StackPanel>
-        <!--<WebView2 x:Name="mdViewer" Grid.Row="1" Grid.Column="1" DefaultBackgroundColor="{StaticResource SolidBackgroundFillColorBaseAlt}" Source="http://localhost:5000"/>-->
+        <WebView2 x:Name="mdViewer" Grid.Row="1" Grid.Column="1" DefaultBackgroundColor="{StaticResource SolidBackgroundFillColorBaseAlt}" Source="http://localhost:5000"/>
     </Grid>
 
 </Page>

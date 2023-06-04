@@ -1,11 +1,11 @@
 #include <iostream>
 #include <fstream>
 #include <sstream>
+#include <thread>
 
-//#include "NLBFR.h"
 #include "utils.h"
 
-#include "OpenAI.h"
+#include "OpenAIInstanced.h"
 #include "MicRecord.h"
 
 std::string reply;
@@ -50,7 +50,7 @@ size_t writeFunctionForChat(void* ptr, size_t size, size_t nmemb, void* data)
 		}
 	}
 
-	PostHelper->Get()->response.append(json.c_str(), size * nmemb);
+	static_cast<std::string*>(data)->append(json.c_str(), size * nmemb);
 	return size * nmemb;
 }
 
@@ -68,7 +68,7 @@ void micRecord()
 	mic.Pause();
 }
 
-std::string speach_to_text()
+std::string speach_to_text(auto& instance)
 {
 	// create json body
 	Json::Value json_body;
@@ -76,21 +76,19 @@ std::string speach_to_text()
 	json_body["file"] = "output.wav";
 
 	// http post request
-	auto result = OpenAI::Create(OpenAI::EndPoint::Whisper, json_body);
+	auto result = instance.Create(OpenAI::EndPoint::Whisper, json_body);
 	return result["text"].asCString();
 }
 
 int main()
 {
-	bool successed = OpenAI::Init(
+	OpenAI::OpenAI instance { 
 		"api key",
-		"org-1XK4EGAKbk9RBmHca7zf6HLK"
-	);
-	if (!successed)
-		return -1;	
+		"org-1XK4EGAKbk9RBmHca7zf6HLK" 
+	};
 
-	HttpContext->SetWriteFunction(writeFunctionForChat);
-	
+	instance.SetWriteFunction(writeFunctionForChat);
+
 	while (true)
 	{
 		std::cout << "User : ";
@@ -99,7 +97,7 @@ int main()
 
 		/*micRecord();
 		std::string utf8 = speach_to_text();
-		
+
 		std::cout << "User : ";
 		std::cout << Utf8ToAnsi(utf8) << std::endl;*/
 
@@ -115,6 +113,6 @@ int main()
 
 		// http post request
 		std::cout << "AI : ";
-		auto result = OpenAI::Create(OpenAI::EndPoint::Chat, json_body);
+		auto result = instance.Create(OpenAI::EndPoint::Chat, json_body);
 	}
 }

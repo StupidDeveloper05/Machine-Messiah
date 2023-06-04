@@ -27,7 +27,7 @@ namespace OpenAI {
 
 		static OpenAI_Http_Context* Get();
 
-	void SetWriteFunction(WriteFunc customFuncPtr = nullptr);
+		void SetWriteFunction(WriteFunc customFuncPtr = nullptr);
 
 	private:
 		static size_t writeFunctionDefault(void* ptr, size_t size, size_t nmemb, void* data);

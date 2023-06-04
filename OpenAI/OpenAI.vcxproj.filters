@@ -18,12 +18,18 @@
     <ClInclude Include="OpenAI.h">
       <Filter>소스 파일</Filter>
     </ClInclude>
+    <ClInclude Include="OpenAIInstanced.h">
+      <Filter>소스 파일</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="OpenAI.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
     <ClCompile Include="jsoncpp.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="OpenAIInstanced.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
   </ItemGroup>
