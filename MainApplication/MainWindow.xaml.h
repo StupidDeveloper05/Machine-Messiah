@@ -12,6 +12,23 @@ namespace winrt::MainApplication::implementation
         MainWindow();
 
         void mainNav_SelectionChanged(winrt::Microsoft::UI::Xaml::Controls::NavigationView const& sender, winrt::Microsoft::UI::Xaml::Controls::NavigationViewSelectionChangedEventArgs const& args);
+        void AppClosed(winrt::Microsoft::UI::Windowing::AppWindow const& sender, winrt::Microsoft::UI::Windowing::AppWindowClosingEventArgs const& args);
+        
+        unsigned short get_port();
+
+    private:
+        unsigned short createPort();
+        void open_markdown_server();
+        void TerminatePreviousProcess(const std::wstring& processName, const std::wstring& fullPath);
+        //Windows::Foundation::IAsyncAction open_markdown_server();
+
+    private:
+        unsigned short m_port;
+        std::string m_key;
+        std::wstring m_wkey;
+
+        PROCESS_INFORMATION pi;
+        STARTUPINFO si = { sizeof(STARTUPINFO) };
     };
 }
 

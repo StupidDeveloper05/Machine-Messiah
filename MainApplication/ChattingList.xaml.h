@@ -11,9 +11,13 @@ namespace winrt::MainApplication::implementation
     {
         ChattingList();
         void ChatList_SelectionChanged(winrt::Windows::Foundation::IInspectable const& sender, winrt::Microsoft::UI::Xaml::Controls::SelectionChangedEventArgs const& e);
+        void OnNavigatedTo(winrt::Microsoft::UI::Xaml::Navigation::NavigationEventArgs const& e);
 
     private:
         ChatThumbnail m_selectedChat;
+
+        unsigned short m_port;
+        std::wstring m_key;
     };
 }
 

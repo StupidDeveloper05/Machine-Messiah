@@ -15,15 +15,16 @@ using namespace Microsoft::UI::Xaml;
 namespace winrt::MainApplication::implementation
 {
     ChattingList::ChattingList()
-        : m_selectedChat{L"No Chat Selected", 0}
+        : m_selectedChat{L"No Chat Selected", 0, L""}
     {
         InitializeComponent();
-        
+
         std::vector<hstring> Titles = { L"인공지능에 대하여", L"인사와 질문" };
         std::vector<int64_t> dates = { time(NULL), time(NULL) };
+        std::vector<hstring> uuids = { L"5345dfdsgwta", L"fsd843hds9" };
         for (int i = 0; i < Titles.size(); ++i)
         {
-            ChatList().Items().Append(ChatThumbnail(Titles[i], dates[i]));
+            ChatList().Items().Append(ChatThumbnail(Titles[i], dates[i], uuids[i]));
         }
     }
 
@@ -44,5 +45,13 @@ namespace winrt::MainApplication::implementation
                 auto str = removedObject.Title();
             }
         }
+    }
+    
+    void ChattingList::OnNavigatedTo(winrt::Microsoft::UI::Xaml::Navigation::NavigationEventArgs const& e)
+    {
+        auto params = e.Parameter().as<Windows::Foundation::Collections::ValueSet>();
+        m_port = params.Lookup(L"port").as<unsigned short>();
+        m_key = params.Lookup(L"key").as<hstring>().c_str();
+        mdViewer().Source(Windows::Foundation::Uri((L"http://localhost:" + std::to_wstring(m_port)).c_str()));
     }
 }

@@ -41,7 +41,7 @@ App::App()
 /// Invoked when the application is launched.
 /// </summary>
 /// <param name="e">Details about the launch request and process.</param>
-void App::OnLaunched(LaunchActivatedEventArgs const&)
+void App::OnLaunched(LaunchActivatedEventArgs const& e)
 {
     window = make<MainWindow>();
     window.Activate();

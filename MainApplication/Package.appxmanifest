@@ -9,7 +9,7 @@
   <Identity
     Name="36b4c69c-84cf-4be9-a7fb-56eda70b1b2a"
     Publisher="CN=My LapTop"
-    Version="1.0.0.0" />
+    Version="1.0.6.0" />
 
   <Properties>
     <DisplayName>MainApplication</DisplayName>

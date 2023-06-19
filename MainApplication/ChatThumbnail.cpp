@@ -7,9 +7,10 @@
 
 namespace winrt::MainApplication::implementation
 {
-    ChatThumbnail::ChatThumbnail(hstring const& Title, int64_t Date)
+    ChatThumbnail::ChatThumbnail(hstring const& Title, int64_t Date, hstring const& Uuid)
         : m_title(Title)
         , m_date(Date)
+        , m_uuid(Uuid)
     {
     }
     
@@ -36,6 +37,20 @@ namespace winrt::MainApplication::implementation
         {
             m_date = value;
             m_propertyChanged(*this, Windows::UI::Xaml::Data::PropertyChangedEventArgs{ L"Date" });
+        }
+    }
+
+    hstring ChatThumbnail::Uuid()
+    {
+        return m_uuid;
+    }
+
+    void ChatThumbnail::Uuid(hstring const& value)
+    {
+        if (m_uuid != value)
+        {
+            m_uuid = value;
+            m_propertyChanged(*this, Windows::UI::Xaml::Data::PropertyChangedEventArgs{ L"Uuid" });
         }
     }
 
