@@ -28,7 +28,7 @@
             </Grid>
         </Grid>
 
-        <NavigationView x:Name="mainNav" Grid.Row="1" Header="This is Header Text" PaneDisplayMode="Auto" IsTabStop="False" SelectionChanged="mainNav_SelectionChanged">
+        <NavigationView x:Name="mainNav" Grid.Row="1" Header="This is Header Text" PaneDisplayMode="Auto" IsTabStop="False" SelectionChanged="mainNav_SelectionChanged" IsPaneOpen="False">
             <NavigationView.MenuItems>
                 <NavigationViewItem x:Name="voice" Tag="Voice Command" >
                     <NavigationViewItem.Icon>

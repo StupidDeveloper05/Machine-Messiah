@@ -22,14 +22,42 @@
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="32"/>
-            <RowDefinition />
+            <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="0.3*"/>
-            <ColumnDefinition Width="0.7*"/>
+            <ColumnDefinition Width="0.25*"/>
+            <ColumnDefinition Width="0.75*"/>
         </Grid.ColumnDefinitions>
-        <ListView Grid.Row="1" Grid.Column="0" ItemTemplate="{StaticResource ChatThumbnail}" x:Name="ChatList" SelectionMode="Extended" SelectionChanged="ChatList_SelectionChanged"/>
-        <WebView2 x:Name="mdViewer" Grid.Row="1" Grid.Column="1" DefaultBackgroundColor="{StaticResource SolidBackgroundFillColorBaseAlt}" Source="http://localhost:5000"/>
+        <Grid Grid.Row="1" Grid.Column="0" x:Name="ListPart" SizeChanged="ListPart_SizeChanged">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="48"/>
+                <RowDefinition/>
+            </Grid.RowDefinitions>
+            <Button Grid.Row="0" x:Name="NewChat" Width="{Binding ActualWidth, ElementName=ListPart}" Height="48" FontSize="16" Click="CreateNewChat">New Chat</Button>
+            <ListView Grid.Row="1" ItemTemplate="{StaticResource ChatThumbnail}" x:Name="ChatList" SelectionMode="Extended" SelectionChanged="ChatList_SelectionChanged"/>
+        </Grid>
+        <Grid Grid.Row="1" Grid.Column="1">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="96" />
+            </Grid.RowDefinitions>
+            <WebView2 x:Name="mdViewer" Grid.Row="0" DefaultBackgroundColor="{StaticResource SolidBackgroundFillColorBaseAlt}" Source="http://localhost:5000"/>
+            <Grid Grid.Row="1">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition />
+                    <ColumnDefinition Width="48"/>
+                </Grid.ColumnDefinitions>
+                <StackPanel Grid.Column="0" VerticalAlignment="Bottom">
+                    <TextBox x:Name="input" TextWrapping="Wrap" AcceptsReturn="True"  
+                     FontSize="17" Padding="10" Height="96" MaxLength="2000" TextChanged="input_TextChanged"></TextBox>
+                </StackPanel>
+                <StackPanel Grid.Column="1" VerticalAlignment="Bottom">
+                    <Button x:Name="Send" Width="48" Height="48" Background="Transparent" Click="Send">
+                        <FontIcon x:Name="SendIcon" Glyph="&#xE724;"/>
+                    </Button>
+                </StackPanel>
+            </Grid>
+        </Grid>
+        
     </Grid>
-
 </Page>

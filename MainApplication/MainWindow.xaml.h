@@ -18,7 +18,7 @@ namespace winrt::MainApplication::implementation
 
     private:
         unsigned short createPort();
-        void open_markdown_server();
+        void open_markdown_server_and_load_data();
         void TerminatePreviousProcess(const std::wstring& processName, const std::wstring& fullPath);
         //Windows::Foundation::IAsyncAction open_markdown_server();
 

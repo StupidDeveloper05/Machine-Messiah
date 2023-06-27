@@ -10,11 +10,14 @@
 #include <Psapi.h>
 #include <tlhelp32.h>
 
+#include <io.h>
 #include <fstream>
 #include <winrt/Microsoft.UI.Windowing.h>
 #include <winrt/Windows.Storage.h>
 #include <winrt/Windows.ApplicationModel.h>
 #include <winrt/Windows.System.UserProfile.h>
+
+#include <Client.h>
 
 using namespace winrt;
 using namespace Windows::UI::Xaml::Interop;
@@ -23,8 +26,12 @@ using namespace Microsoft::UI::Xaml;
 // To learn more about WinUI, the WinUI project structure,
 // and more about our project templates, see: http://aka.ms/winui-project-info.
 
+MDView::Client CLIENT;
+Json::Value DATA;
+
 namespace winrt::MainApplication::implementation
 {
+
     MainWindow::MainWindow()
     {
         InitializeComponent();
@@ -34,7 +41,7 @@ namespace winrt::MainApplication::implementation
         ExtendsContentIntoTitleBar(true);
         SetTitleBar(AppTitleBar());
 
-        open_markdown_server();
+        open_markdown_server_and_load_data();
 
         voice().Content(box_value(L"음성 명령"));
         chat().Content(box_value(L"채팅"));
@@ -74,12 +81,24 @@ namespace winrt::MainApplication::implementation
     {
         auto cancel = args.Cancel();
         if (!cancel) {
+            // save data
+            auto local = Windows::Storage::ApplicationData::Current().LocalFolder().Path();
+            auto fNameW = std::wstring((local + L"\\userData.json").c_str());
+            std::string fName; fName.assign(fNameW.begin(), fNameW.end());
+
+            Json::StyledWriter writer;
+            auto str = writer.write(DATA);
+            std::ofstream output(fName.c_str());
+            output << str;
+            output.close();
+
+            // close md viewer
             std::string command = std::string("curl -X GET \"http://localhost:") + std::to_string(m_port) + std::string("/shutdown?key=") + m_key + std::string("\"");
             system(command.c_str());
         }
     }
 
-    void MainWindow::open_markdown_server()
+    void MainWindow::open_markdown_server_and_load_data()
     {
         // create random key
         srand(time(NULL));
@@ -95,6 +114,32 @@ namespace winrt::MainApplication::implementation
         auto user = Windows::System::User::GetDefault();
         Windows::Storage::StorageFolder storageFolder = Windows::Storage::StorageFolder::GetFolderFromPathForUserAsync(user, temp).get();
 
+        // load user data
+        auto local = Windows::Storage::ApplicationData::Current().LocalFolder().Path();
+        auto fNameW = std::wstring((local + L"\\userData.json").c_str());
+        std::string fName; fName.assign(fNameW.begin(), fNameW.end());
+        if (_access(fName.c_str(), 0) != -1)
+        {
+            std::fstream jsonData;
+            jsonData.open(fName.c_str(), std::ifstream::in | std::ifstream::binary);
+            jsonData >> DATA;
+            jsonData.close();
+        }
+        else
+        {
+            DATA["name"] = "YOUR NAME";
+            DATA["API_KEY"] = "YOUR_API_KEY";
+            DATA["ORGANZATION_ID"] = "YOURS";
+            DATA["chatting"] = Json::Value(Json::objectValue);
+
+            Json::StyledWriter writer;
+            auto str = writer.write(DATA);
+
+            std::ofstream output(fName.c_str());
+            output << str;
+            output.close();
+        }
+
         // kill remain process
         TerminatePreviousProcess(L"app.exe", (temp + L"\\app.exe").c_str());
 
@@ -107,10 +152,14 @@ namespace winrt::MainApplication::implementation
         mdViewer.CopyAsync(storageFolder, L"app.exe", Windows::Storage::NameCollisionOption::ReplaceExisting).get();
 
         // create availiable port
-        m_port = createPort();    
+        m_port = createPort();
 
         // run markdown viewer server
         CreateProcess((temp + L"\\app.exe").c_str(), (LPWSTR)(std::wstring(L"\"app\" --key ") + m_wkey + std::wstring(L" --port ") + std::to_wstring(m_port)).c_str(), NULL, NULL, FALSE, CREATE_NO_WINDOW, NULL, NULL, &si, &pi);
+
+        // connect client
+        CLIENT.connect("http://localhost:" + std::to_string(m_port));
+        while (!CLIENT.isConnected()) {}
     }
 
     void MainWindow::TerminatePreviousProcess(const std::wstring& processName, const std::wstring& fullPath)

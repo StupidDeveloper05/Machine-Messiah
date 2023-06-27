@@ -63,7 +63,10 @@ def request_io(msg):
             Data[msg['uuid']][-1] = (msg["type"], msg["msg"])
         else:
             Data[msg['uuid']].append((msg["type"], msg["msg"]))
-        send(msg, broadcast=True)
+        if msg["clear"]:
+            Data[msg['uuid']] = []
+        else:
+            send(msg, broadcast=True)
     print(f"[{time.strftime('%Y.%m.%d %p %I:%M:%S')}] {msg['type'].upper()} : {msg['status']}")
 
 if __name__ == "__main__":

@@ -83,7 +83,7 @@ std::string speach_to_text(auto& instance)
 int main()
 {
 	OpenAI::OpenAI instance { 
-		"sk-a",
+		"api key",
 		"org-1XK4EGAKbk9RBmHca7zf6HLK" 
 	};
 

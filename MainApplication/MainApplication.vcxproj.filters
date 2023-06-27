@@ -34,6 +34,12 @@
     <ClInclude Include="ChatThumbnail.h">
       <Filter>DataTemplate\ChatThumbnail</Filter>
     </ClInclude>
+    <ClInclude Include="utils.h">
+      <Filter>Utility</Filter>
+    </ClInclude>
+    <ClInclude Include="client.h">
+      <Filter>Utility</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Image Include="Assets\Wide310x150Logo.scale-200.png">
@@ -70,6 +76,9 @@
     </Filter>
     <Filter Include="Pages">
       <UniqueIdentifier>{8201c8bc-44fa-4748-94a0-f14562626618}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Utility">
+      <UniqueIdentifier>{8ad11e83-7610-48a9-a570-0e3369e583ee}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>

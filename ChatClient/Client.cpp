@@ -28,15 +28,15 @@ namespace MDView {
 		client->connect(url);
 	}
 	
-	sio::message::ptr CreateMessage(const std::string& key, const std::string& uuid, const std::string& msg, const std::string& type, const std::string& status, bool kill)
+	sio::message::ptr CreateMessage(const std::string& key, const std::string& uuid, const std::string& msg, const std::string& type, const std::string& status, const bool clear)
 	{
 		auto message = sio::object_message::create();
 		message->get_map()["key"] = sio::string_message::create(key);
 		message->get_map()["uuid"] = sio::string_message::create(uuid);
-		message->get_map()["kill"] = sio::bool_message::create(kill);
 		message->get_map()["msg"] = sio::string_message::create(msg);
 		message->get_map()["type"] = sio::string_message::create(type);
 		message->get_map()["status"] = sio::string_message::create(status);
+		message->get_map()["clear"] = sio::bool_message::create(clear);
 		return message;
 	}
 }

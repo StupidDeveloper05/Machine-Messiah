@@ -8,12 +8,12 @@
 namespace MDView {
 	
 	sio::message::ptr CreateMessage(
-		const std::string& key, 
-		const std::string& uuid, 
-		const std::string& msg, 
-		const std::string& type, 
+		const std::string& key,
+		const std::string& uuid,
+		const std::string& msg,
+		const std::string& type,
 		const std::string& status,
-		bool kill
+		const bool clear
 	);
 
 	class Client {

@@ -24,8 +24,7 @@ int main()
 		"uuidTest",
 		"Hello?",
 		"user",
-		"start",
-		false
+		"start"
 	);
 
 	int a;
@@ -42,8 +41,7 @@ int main()
 		"uuidTest",
 		"Hello?",
 		"user",
-		"start",
-		false
+		"start"
 	);
 	client.send(msg);
 	std::cin >> a;
