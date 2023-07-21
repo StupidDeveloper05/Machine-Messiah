@@ -4,6 +4,7 @@
 #include <thread>
 #include <string>
 #include <sio_client.h>
+#include <functional>
 
 namespace MDView {
 	

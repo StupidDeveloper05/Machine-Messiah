@@ -14,13 +14,25 @@
     <script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/socket.io/4.6.1/socket.io.min.js"></script>
     <script src="https://cdn.jsdelivr.net/remarkable/1.7.1/remarkable.min.js"></script>
     <script>
+        function copyBtn(e) {
+            window.navigator.clipboard.writeText(e.parentNode.childNodes[1].innerText);
+            e.innerText="copied!";
+            setTimeout(function(){e.innerText="copy"}, 1000);
+        }
         function mdtohtml(row_text){
             const md = new Remarkable();
             return md.render(row_text);
         }
         function applyPrism(element) {
             element.find("code").each(function(index, item) {
+                var text = item.innerText;
                 Prism.highlightElement(item);
+                if (item.parentNode.tagName == "PRE") {
+                    var btn = $('<button onclick="copyBtn(this);">copy</button>')[0];
+                    item.parentNode.parentNode.childNodes[1].append(btn);
+                    var copyText = $('<div class="copyText" style="display:none"></div>').text(text);
+                    item.parentNode.parentNode.childNodes[1].append(copyText[0]);
+                }
             });
             element.find("code").removeClass('language-none');
         }
@@ -43,8 +55,8 @@
                     if(msg.type === 'assistant'){
                         if (msg.status === 'running'){
                             var content = $('<div class="markdown-body">').html(mdtohtml(msg.msg));
-                                applyPrism(content);
-                                applyDiffDOM(content);
+                            applyPrism(content);
+                            applyDiffDOM(content);
                         }
                         else if (msg.status === 'start'){
                             var content = $('<div class="chatting-card-assistant"><div class="markdown-body">'+ mdtohtml(msg.msg) +'</div></div>');
@@ -77,10 +89,18 @@
             }
         });
         $("code").each(function(index, item) {
+            var text = item.innerText;
             Prism.highlightElement(item);
+            if (item.parentNode.tagName == "PRE") {
+                var btn = $('<button onclick="copyBtn(this);">copy</button>')[0];
+                item.parentNode.parentNode.childNodes[1].append(btn);
+                var copyText = $('<div class="copyText" style="display:none"></div>').text(text);
+                item.parentNode.parentNode.childNodes[1].append(copyText[0]);
+            }
         });
         $("code").removeClass('language-none');
         $('a').attr('target', '_blank');
+        window.scrollTo({top: $("#chatList").prop('scrollHeight')});
     </script>
 </body>
 </html>

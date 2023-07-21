@@ -8,13 +8,14 @@
     xmlns:local="using:MainApplication"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-    mc:Ignorable="d">
+    mc:Ignorable="d"
+    NavigationCacheMode="Enabled">
 
     <Page.Resources>
         <DataTemplate x:Key="ChatThumbnail" x:DataType="local:ChatThumbnail">
-            <StackPanel Orientation="Vertical">
-                <TextBlock FontSize="22" Text="{x:Bind Title}" Margin="0,4,0,4"/>
-                <TextBlock FontSize="14" Foreground="{StaticResource SystemChromeHighColor}" Text="{x:Bind DateToStr()}" Margin="0,0,0,4"/>
+            <StackPanel Orientation="Vertical" Grid.Column="0">
+                <TextBlock FontSize="18" Text="{x:Bind Title}" Margin="0,4,0,4"/>
+                <TextBlock FontSize="12" Foreground="{StaticResource SystemChromeHighColor}" Text="{x:Bind DateToStr()}" Margin="0,0,0,4"/>
             </StackPanel>
         </DataTemplate>
     </Page.Resources>
@@ -33,7 +34,7 @@
                 <RowDefinition Height="48"/>
                 <RowDefinition/>
             </Grid.RowDefinitions>
-            <Button Grid.Row="0" x:Name="NewChat" Width="{Binding ActualWidth, ElementName=ListPart}" Height="48" FontSize="16" Click="CreateNewChat">New Chat</Button>
+            <Button Grid.Row="0" x:Name="NewChat" Margin="5,0,5,0" Width="{Binding ActualWidth, ElementName=ListPart}" Height="48" FontSize="16" Click="NewChatPage">New Chat</Button>
             <ListView Grid.Row="1" ItemTemplate="{StaticResource ChatThumbnail}" x:Name="ChatList" SelectionMode="Extended" SelectionChanged="ChatList_SelectionChanged"/>
         </Grid>
         <Grid Grid.Row="1" Grid.Column="1">

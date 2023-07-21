@@ -7,10 +7,15 @@
 #include "ChattingList.g.cpp"
 #endif
 
+#include <winrt/Microsoft.Web.WebView2.Core.h>
+
 #include <iostream>
 #include <ctime>
 #include <regex>
+
 #include "utils.h"
+#include "FileSystem.h"
+#include "OpenAIStorage.h"
 
 using namespace winrt;
 using namespace Microsoft::UI::Xaml;
@@ -18,18 +23,21 @@ using namespace Microsoft::UI::Xaml;
 namespace winrt::MainApplication::implementation
 {
     ChattingList::ChattingList()
-        : m_selectedChat{L"No Chat Selected", 0, L""}
-        , m_activatedChatUuid(L"untitled")
+        : m_selectedChat{nullptr}
+        , m_activatedChatUuid(L"")
     {
         InitializeComponent();
 
+        // new chat용 uuid 생성
+        m_activatedChatUuid = GenerateUUID();
+        m_newChatUuid = m_activatedChatUuid;
+
+        // 채팅 기록 로드
         m_data = &DATA["chatting"];
         for (auto key : m_data->getMemberNames())
         {
             ChatList().Items().Append(ChatThumbnail(GetWStringFromString((*m_data)[key.c_str()]["title"].asCString()), (*m_data)[key.c_str()]["created_time"].asInt64(), GetWStringFromString(key.c_str())));
         }
-        m_activatedChatUuid = GetWStringFromString(m_data->getMemberNames()[0].c_str());
-
         input().PlaceholderText(L"질문을 입력하세요.");
     }
 
@@ -40,9 +48,10 @@ namespace winrt::MainApplication::implementation
             for (int i = 0; i < e.AddedItems().Size(); ++i)
             {
                 m_selectedChat = e.AddedItems().GetAt(i).as<ChatThumbnail>();
-                m_activatedChatUuid = m_selectedChat.Uuid();
-                mdViewer().Source(Windows::Foundation::Uri((L"http://localhost:" + std::to_wstring(m_port) + L"/chat/" + m_activatedChatUuid + L"?key=" + m_key).c_str()));
-                SendToClient();
+                if (!(m_activatedChatUuid == m_selectedChat.Uuid())) {
+                    m_activatedChatUuid = m_selectedChat.Uuid();
+                    mdViewer().Source(Windows::Foundation::Uri((L"http://localhost:" + std::to_wstring(m_port) + L"/chat/" + m_activatedChatUuid + L"?key=" + m_key).c_str()));
+                }
             }
         }
         if (e.RemovedItems().Size() > 0)
@@ -61,18 +70,24 @@ namespace winrt::MainApplication::implementation
         m_port = params.Lookup(L"port").as<unsigned short>();
         m_key = params.Lookup(L"key").as<hstring>().c_str();
         mdViewer().Source(Windows::Foundation::Uri((L"http://localhost:" + std::to_wstring(m_port) + L"/chat/" + m_activatedChatUuid + L"?key=" + m_key).c_str()));
-        SendToClient();
     }
     
     void ChattingList::Send(winrt::Windows::Foundation::IInspectable const& sender, winrt::Microsoft::UI::Xaml::RoutedEventArgs const& e)
     {
         if (input().Text().size() != 0)
         {
-            auto inputText = AnsiToUtf8(GetStringFromWstring(input().Text().c_str()));
-            inputText = std::regex_replace(inputText, std::regex("\r"), "\n");
+            if (m_chatInfo[GetStringFromWstring(m_activatedChatUuid)].isRunning)
+                return;
 
-            // send user request to openai api
-            
+            if (m_activatedChatUuid == m_newChatUuid)
+                CreateNewChat();
+
+            // copy text and clear input
+            auto inputText = AnsiToUtf8(GetStringFromWstring(input().Text().c_str()));
+            inputText = std::regex_replace(inputText, std::regex("\r"), "\n");        
+
+            // 현재 chat을 작동 중으로 변경
+            m_chatInfo[GetStringFromWstring(m_activatedChatUuid)].isRunning = true;
 
             // send user request to markdown viewer server
             auto msg = MDView::CreateMessage(
@@ -87,8 +102,17 @@ namespace winrt::MainApplication::implementation
                 CLIENT.send(msg);
 
             // save to DATA
-            Json::Value data; data["user"] = inputText;
-            (*m_data)[GetStringFromWstring(m_activatedChatUuid)]["data"].append(data);
+           (*m_data)[GetStringFromWstring(m_activatedChatUuid)]["data"].append(OpenAI::CreateMessage("user", inputText.c_str()));
+
+            // send user request to openai api
+            Json::Value json_body;
+            json_body["model"] = "gpt-3.5-turbo";
+            json_body["messages"] = (*m_data)[GetStringFromWstring(m_activatedChatUuid)]["data"];
+            json_body["stream"] = true;
+            OpenAI::OpenAIStorage::Get()->Create(OpenAI::EndPoint::Chat, json_body, GetStringFromWstring(m_activatedChatUuid), &m_chatInfo[GetStringFromWstring(m_activatedChatUuid)].isRunning);
+
+            // save File
+            SaveData();
 
             // clear input
             input().Text(L"");
@@ -109,22 +133,27 @@ namespace winrt::MainApplication::implementation
 
     void ChattingList::ListPart_SizeChanged(winrt::Windows::Foundation::IInspectable const& sender, winrt::Microsoft::UI::Xaml::SizeChangedEventArgs const& e)
     {
-        NewChat().Width(ListPart().ActualWidth());
+        NewChat().Width(ListPart().ActualWidth() - 10);
     }
 
-    void ChattingList::CreateNewChat(winrt::Windows::Foundation::IInspectable const& sender, winrt::Microsoft::UI::Xaml::RoutedEventArgs const& e)
+    void ChattingList::NewChatPage(winrt::Windows::Foundation::IInspectable const& sender, winrt::Microsoft::UI::Xaml::RoutedEventArgs const& e)
     {
-        auto uuid = GenerateUUID();
+        ChatList().SelectedItem(nullptr);
+        m_activatedChatUuid = m_newChatUuid;
+        mdViewer().Source(Windows::Foundation::Uri((L"http://localhost:" + std::to_wstring(m_port) + L"/chat/" + m_activatedChatUuid + L"?key=" + m_key).c_str()));
+    }
+
+    void ChattingList::CreateNewChat()
+    {
         auto t = time(NULL);
-        ChatList().Items().Append(ChatThumbnail(L"Untitled Chat", t, uuid));
+        ChatList().Items().Append(ChatThumbnail(L"Untitled Chat", t, m_newChatUuid));
         ChatList().SelectedItem(ChatList().Items().GetAt(ChatList().Items().Size() - 1));
 
-        DATA["chatting"][GetStringFromWstring(uuid)]["title"] = "Untitled Chat";
-        DATA["chatting"][GetStringFromWstring(uuid)]["created_time"] = t;
-        DATA["chatting"][GetStringFromWstring(uuid)]["data"] = Json::Value(Json::arrayValue);
+        DATA["chatting"][GetStringFromWstring(m_newChatUuid)]["title"] = "Untitled Chat";
+        DATA["chatting"][GetStringFromWstring(m_newChatUuid)]["created_time"] = t;
+        DATA["chatting"][GetStringFromWstring(m_newChatUuid)]["data"] = Json::Value(Json::arrayValue);
 
-        m_activatedChatUuid = uuid;
-        mdViewer().Source(Windows::Foundation::Uri((L"http://localhost:" + std::to_wstring(m_port) + L"/chat/" + m_activatedChatUuid + L"?key=" + m_key).c_str()));
+        m_newChatUuid = GenerateUUID();
     }
 
     std::string ChattingList::GetStringFromWstring(const std::wstring& str)
@@ -155,34 +184,5 @@ namespace winrt::MainApplication::implementation
         }
 
         return key;
-    }
-    
-    void ChattingList::SendToClient()
-    {
-        // clear chatting page
-        auto clear = MDView::CreateMessage(
-            GetStringFromWstring(m_key),
-            GetStringFromWstring(m_activatedChatUuid),
-            "", "", "start", true
-        );
-        if (CLIENT.isConnected())
-            CLIENT.send(clear);
-
-        for (auto const& message : (*m_data)[GetStringFromWstring(m_activatedChatUuid)]["data"])
-        {
-            for (auto const& key : message.getMemberNames())
-            {
-                auto msg = MDView::CreateMessage(
-                    GetStringFromWstring(m_key),
-                    GetStringFromWstring(m_activatedChatUuid),
-                    message[key].asCString(),
-                    key,
-                    "start",
-                    false
-                );
-                if (CLIENT.isConnected())
-                    CLIENT.send(msg);
-            }
-        }
     }
 }

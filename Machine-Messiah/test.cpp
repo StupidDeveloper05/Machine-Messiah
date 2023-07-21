@@ -49,8 +49,16 @@ size_t writeFunctionForChat(void* ptr, size_t size, size_t nmemb, void* data)
 			}
 		}
 	}
+	else 
+	{
+		bool parsing_successful = reader->parse(json.c_str(), json.c_str() + json.size(), &root, &errors);
+		if (parsing_successful) {
+			std::cout << root << std::endl;
+			std::cout << root["error"]["message"] << std::endl;
+		}
+	}
 
-	static_cast<std::string*>(data)->append(json.c_str(), size * nmemb);
+	//static_cast<std::string*>(data)->append(json.c_str(), size * nmemb);
 	return size * nmemb;
 }
 
@@ -83,7 +91,7 @@ std::string speach_to_text(auto& instance)
 int main()
 {
 	OpenAI::OpenAI instance { 
-		"api key",
+		"sk-apikey",
 		"org-1XK4EGAKbk9RBmHca7zf6HLK" 
 	};
 

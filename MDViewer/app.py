@@ -4,12 +4,14 @@ from flask import request
 from engineio.async_drivers import gevent
 import socket
 
+import json
 import time
 import argparse
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--key", type=str);
 parser.add_argument("--port", type=int);
+parser.add_argument("--file", type=str);
 args = parser.parse_args()
 
 ACCESS_KEY = args.key;
@@ -19,7 +21,19 @@ app = Flask(__name__)
 socket_io = SocketIO(app, cors_allowed_origins="*")
 
 Cache = []
-Data = dict()
+Data = {}
+
+def load_data(path):
+    global Data
+    with open(path, "r") as f:
+        json_object = json.load(f)
+        for chat in json_object["chatting"]:
+            Data[chat] = []
+            for i in json_object["chatting"][chat]["data"]:
+                Data[chat].append((i["role"], i["content"]))
+
+if args.file != "":
+    load_data(args.file)
 
 @app.route('/')
 def home():

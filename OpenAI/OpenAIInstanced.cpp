@@ -15,6 +15,7 @@ namespace OpenAI {
 		apiKey = api_key;
 		authorization = _authorization;
 		mainUrl = "https://api.openai.com/v1/";
+		isAvailable = true;
 
 		//curl_global_init(CURL_GLOBAL_ALL);
 		curl = curl_easy_init();
@@ -23,12 +24,16 @@ namespace OpenAI {
 	OpenAI::~OpenAI()
 	{
 		curl_easy_cleanup(curl);
+		delete userPtr;
 	}
 	
 	Json::Value OpenAI::Create(EndPoint eType, Json::Value& json_body)
 	{
+		isAvailable = false;
 		SetEndPoint(eType);
-		return MakeRequest(json_body);
+		auto result = MakeRequest(json_body);
+		isAvailable = true;
+		return result;
 	}
 
 	void OpenAI::SetWriteFunction(WriteFunc customFuncPtr)
@@ -37,6 +42,21 @@ namespace OpenAI {
 			write_func = customFuncPtr;
 		else
 			write_func = writeFunctionDefault;
+	}
+
+	void OpenAI::SetUserPointer(void* _userPtr)
+	{
+		userPtr = _userPtr;
+	}
+
+	void* OpenAI::GetUserPointer()
+	{
+		return userPtr;
+	}
+
+	bool OpenAI::IsAvailiable()
+	{
+		return isAvailable;
 	}
 	
 	void OpenAI::SetEndPoint(EndPoint endPointType)
@@ -104,7 +124,7 @@ namespace OpenAI {
 		curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
 
 		curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_func);
-		curl_easy_setopt(curl, CURLOPT_WRITEDATA, &response);
+		curl_easy_setopt(curl, CURLOPT_WRITEDATA, userPtr == nullptr ? &response : userPtr);
 
 		// debugging
 		//curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);

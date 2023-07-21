@@ -6,7 +6,6 @@
 #include <json/json.h>
 
 namespace OpenAI {
-
 	enum class EndPoint
 	{
 		Chat,
@@ -25,6 +24,9 @@ namespace OpenAI {
 	public:
 		Json::Value Create(EndPoint eType, Json::Value& json_body);
 		void SetWriteFunction(WriteFunc customFuncPtr = nullptr);
+		void SetUserPointer(void* _userPtr);
+		void* GetUserPointer();
+		bool IsAvailiable();
 
 	private:
 		void SetEndPoint(EndPoint endPointType);
@@ -37,6 +39,9 @@ namespace OpenAI {
 		std::string response;
 
 	private:
+		// user pointer
+		void* userPtr;
+
 		// post setting
 		std::string mainUrl;
 		std::string endpoint;
@@ -49,6 +54,9 @@ namespace OpenAI {
 		// context
 		CURL* curl;
 		CURLcode res;
+
+		// available check
+		bool	isAvailable;
 
 		WriteFunc write_func = writeFunctionDefault;
 	};

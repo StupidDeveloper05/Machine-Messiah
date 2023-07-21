@@ -130,6 +130,8 @@
       <SubType>Code</SubType>
     </ClInclude>
     <ClInclude Include="client.h" />
+    <ClInclude Include="FileSystem.h" />
+    <ClInclude Include="OpenAIStorage.h" />
     <ClInclude Include="pch.h" />
     <ClInclude Include="App.xaml.h">
       <DependentUpon>App.xaml</DependentUpon>
@@ -166,6 +168,8 @@
       <DependentUpon>ChattingList.xaml</DependentUpon>
       <SubType>Code</SubType>
     </ClCompile>
+    <ClCompile Include="FileSystem.cpp" />
+    <ClCompile Include="OpenAIStorage.cpp" />
     <ClCompile Include="pch.cpp">
       <PrecompiledHeader>Create</PrecompiledHeader>
     </ClCompile>

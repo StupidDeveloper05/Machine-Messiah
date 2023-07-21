@@ -50,7 +50,7 @@ size_t writeFunctionForChat(void* ptr, size_t size, size_t nmemb, void* data)
 		}
 	}
 
-	PostHelper->Get()->response.append(json.c_str(), size * nmemb);
+	//PostHelper->Get()->response.append(json.c_str(), size * nmemb);
 	return size * nmemb;
 }
 
@@ -83,7 +83,7 @@ std::string speach_to_text()
 int main()
 {
 	bool successed = OpenAI::Init(
-		"api key",
+		"sk-apikey",
 		"org-1XK4EGAKbk9RBmHca7zf6HLK"
 	);
 	if (!successed)

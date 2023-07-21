@@ -18,6 +18,8 @@
 #include <winrt/Windows.System.UserProfile.h>
 
 #include <Client.h>
+#include "FileSystem.h"
+#include "OpenAIStorage.h"
 
 using namespace winrt;
 using namespace Windows::UI::Xaml::Interop;
@@ -27,7 +29,7 @@ using namespace Microsoft::UI::Xaml;
 // and more about our project templates, see: http://aka.ms/winui-project-info.
 
 MDView::Client CLIENT;
-Json::Value DATA;
+//Json::Value DATA;
 
 namespace winrt::MainApplication::implementation
 {
@@ -81,16 +83,9 @@ namespace winrt::MainApplication::implementation
     {
         auto cancel = args.Cancel();
         if (!cancel) {
-            // save data
-            auto local = Windows::Storage::ApplicationData::Current().LocalFolder().Path();
-            auto fNameW = std::wstring((local + L"\\userData.json").c_str());
-            std::string fName; fName.assign(fNameW.begin(), fNameW.end());
-
-            Json::StyledWriter writer;
-            auto str = writer.write(DATA);
-            std::ofstream output(fName.c_str());
-            output << str;
-            output.close();
+            SaveData();
+            UserData::UserDataFile::Get()->Destroy();
+            OpenAI::OpenAIStorage::Get()->Destroy();
 
             // close md viewer
             std::string command = std::string("curl -X GET \"http://localhost:") + std::to_string(m_port) + std::string("/shutdown?key=") + m_key + std::string("\"");
@@ -108,6 +103,7 @@ namespace winrt::MainApplication::implementation
             m_wkey += alphabet[rand() % alphabet.size()];
         }
         m_key.assign(m_wkey.begin(), m_wkey.end());
+        OpenAI::OpenAIStorage::Get()->m_key = m_key;
 
         // get appx path
         auto temp = Windows::Storage::ApplicationData::Current().TemporaryFolder().Path();
@@ -155,7 +151,7 @@ namespace winrt::MainApplication::implementation
         m_port = createPort();
 
         // run markdown viewer server
-        CreateProcess((temp + L"\\app.exe").c_str(), (LPWSTR)(std::wstring(L"\"app\" --key ") + m_wkey + std::wstring(L" --port ") + std::to_wstring(m_port)).c_str(), NULL, NULL, FALSE, CREATE_NO_WINDOW, NULL, NULL, &si, &pi);
+        CreateProcess((temp + L"\\app.exe").c_str(), (LPWSTR)(std::wstring(L"\"app\" --key ") + m_wkey + std::wstring(L" --port ") + std::to_wstring(m_port) + std::wstring(L" --file ") + fNameW).c_str(), NULL, NULL, FALSE, CREATE_NO_WINDOW, NULL, NULL, &si, &pi);
 
         // connect client
         CLIENT.connect("http://localhost:" + std::to_string(m_port));

@@ -2,11 +2,12 @@
 #include <iostream>
 
 namespace MDView {
-	
+
 	Client::~Client()
 	{
 		m_client.sync_close();
 	}
+
 	void Client::connect(const std::string& url)
 	{
 		std::thread t(&MDView::Client::_run, this, &m_client, url);

@@ -28,6 +28,12 @@
     <ClCompile Include="ChatThumbnail.cpp">
       <Filter>DataTemplate\ChatThumbnail</Filter>
     </ClCompile>
+    <ClCompile Include="FileSystem.cpp">
+      <Filter>FileSystem</Filter>
+    </ClCompile>
+    <ClCompile Include="OpenAIStorage.cpp">
+      <Filter>OpenAI</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="pch.h" />
@@ -39,6 +45,12 @@
     </ClInclude>
     <ClInclude Include="client.h">
       <Filter>Utility</Filter>
+    </ClInclude>
+    <ClInclude Include="FileSystem.h">
+      <Filter>FileSystem</Filter>
+    </ClInclude>
+    <ClInclude Include="OpenAIStorage.h">
+      <Filter>OpenAI</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -79,6 +91,12 @@
     </Filter>
     <Filter Include="Utility">
       <UniqueIdentifier>{8ad11e83-7610-48a9-a570-0e3369e583ee}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="FileSystem">
+      <UniqueIdentifier>{64f2a3ae-8819-41c7-8ec8-d2566fe9b3a2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="OpenAI">
+      <UniqueIdentifier>{c7a19549-f265-4fa3-9e07-094cf4f246ba}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
