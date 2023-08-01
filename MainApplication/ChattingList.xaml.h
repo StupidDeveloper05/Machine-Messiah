@@ -35,6 +35,10 @@ namespace winrt::MainApplication::implementation
         Json::Value*    m_data;
 
         bool            m_shiftDown;
+        bool            m_isPaneOpen;
+
+        // 항상 위에 유지 모드 전의 상태 기록
+        bool            m_beforePaneOpen;
 
         winrt::Microsoft::UI::Xaml::DispatcherTimer timer;
 
@@ -55,6 +59,8 @@ namespace winrt::MainApplication::implementation
         void input_SizeChanged(winrt::Windows::Foundation::IInspectable const& sender, winrt::Microsoft::UI::Xaml::SizeChangedEventArgs const& e);
         Windows::Foundation::IAsyncAction mdViewer_CoreWebView2Initialized(winrt::Microsoft::UI::Xaml::Controls::WebView2 const& sender, winrt::Microsoft::UI::Xaml::Controls::CoreWebView2InitializedEventArgs const& args);
         void ToolBtnUpdate(winrt::Windows::Foundation::IInspectable const&, winrt::Windows::Foundation::IInspectable const&);
+        void AlwaysTop_Click(winrt::Windows::Foundation::IInspectable const& sender, winrt::Microsoft::UI::Xaml::RoutedEventArgs const& e);
+        void ClosePane_Click(winrt::Windows::Foundation::IInspectable const& sender, winrt::Microsoft::UI::Xaml::RoutedEventArgs const& e);
     };
 }
 

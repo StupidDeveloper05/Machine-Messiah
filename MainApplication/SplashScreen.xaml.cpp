@@ -16,7 +16,6 @@
 #include <winrt/Windows.Storage.h>
 #include <winrt/Windows.ApplicationModel.h>
 #include <winrt/Windows.System.UserProfile.h>
-#include <winrt/Windows.Graphics.Display.h>
 
 #include <Client.h>
 #include "FileSystem.h"
@@ -28,7 +27,6 @@
 using namespace winrt;
 using namespace Microsoft::UI::Xaml;
 using namespace std::chrono_literals;
-using namespace Windows::Graphics::Display;
 using namespace Microsoft::UI::Windowing;
 
 // To learn more about WinUI, the WinUI project structure,

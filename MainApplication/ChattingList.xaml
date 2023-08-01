@@ -27,23 +27,33 @@
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="0.25*"/>
-            <ColumnDefinition Width="0.75*"/>
+            <ColumnDefinition x:Name="ListColumn" Width="0.25*"/>
+            <ColumnDefinition x:Name="ViewColumn" Width="0.75*"/>
         </Grid.ColumnDefinitions>
+        <Grid Grid.Row="0" Grid.Column="1">
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                <Button x:Name="AlwaysTop" Margin="0,0,10,5" Click="AlwaysTop_Click">
+                    <FontIcon x:Name="AlwaysTopIcon" FontFamily="Segoe MDL2 Assets" Glyph="&#xEE49;" />
+                </Button>
+                <Button x:Name="ClosePane" Margin="0,0,10,5" Click="ClosePane_Click">
+                    <FontIcon x:Name="ClosePaneIcon" Glyph="&#xEA49;" />
+                </Button>
+            </StackPanel>            
+        </Grid>
         <Grid Grid.Row="1" Grid.Column="0" x:Name="ListPart" SizeChanged="ListPart_SizeChanged">
             <Grid.RowDefinitions>
                 <RowDefinition Height="48"/>
                 <RowDefinition/>
             </Grid.RowDefinitions>
             <StackPanel Orientation="Horizontal" Grid.Row="0">
-                <Button x:Name="NewChat" Margin="0,0,5,0" Height="48" FontSize="16" Click="NewChatPage" ToolTipService.ToolTip="New Chat">
-                    <FontIcon Glyph="&#xE710;"/>
+                <Button x:Name="NewChat" Margin="0,0,5,0" Height="48" FontSize="16" Click="NewChatPage">
+                    <FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE710;"/>
                 </Button>
-                <Button x:Name="EditTitle" Margin="0,0,5,0" Height="48" FontSize="16" Click="EditTitle_Click" ToolTipService.ToolTip="Edit Title">
-                    <FontIcon Glyph="&#xE70F;"/>
+                <Button x:Name="EditTitle" Margin="0,0,5,0" Height="48" FontSize="16" Click="EditTitle_Click">
+                    <FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE70F;"/>
                 </Button>
-                <Button x:Name="Delete" Margin="0,0,5,0" Height="48" FontSize="16" Click="Delete_Click" ToolTipService.ToolTip="Delete Chat">
-                    <FontIcon Glyph="&#xE74D;"/>
+                <Button x:Name="Delete" Margin="0,0,5,0" Height="48" FontSize="16" Click="Delete_Click">
+                    <FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE74D;"/>
                 </Button>
             </StackPanel>
             <ListView Grid.Row="1" ItemTemplate="{StaticResource ChatThumbnail}" x:Name="ChatList" SelectionMode="Extended" SelectionChanged="ChatList_SelectionChanged"/>
@@ -64,10 +74,10 @@
                 </StackPanel>
                 <StackPanel Grid.Column="1" VerticalAlignment="Bottom">
                     <Button x:Name="Tool" Width="46" Height="46" Margin="1" Click="Tool_Click">
-                        <FontIcon x:Name="ToolIcon" Glyph="&#xE72C;"/>
+                        <FontIcon x:Name="ToolIcon" FontFamily="Segoe MDL2 Assets" Glyph="&#xE72C;"/>
                     </Button>
                     <Button x:Name="SendBtn" Width="46" Height="46" Margin="1" Click="Send" >
-                        <FontIcon x:Name="SendIcon" Glyph="&#xE724;"/>
+                        <FontIcon x:Name="SendIcon" FontFamily="Segoe MDL2 Assets" Glyph="&#xE724;"/>
                     </Button>
                 </StackPanel>
             </Grid>

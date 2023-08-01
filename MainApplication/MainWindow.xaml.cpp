@@ -31,7 +31,8 @@ namespace winrt::MainApplication::implementation
     {
         InitializeComponent();
 
-        this->AppWindow().Closing({ this, &MainWindow::AppClosed });
+        AppWindow().Closing({ this, &MainWindow::AppClosed });
+        AppWindow().Resize({ 1200, 720 });
 
         ExtendsContentIntoTitleBar(true);
         SetTitleBar(AppTitleBar());

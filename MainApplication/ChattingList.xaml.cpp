@@ -7,6 +7,7 @@
 #include "ChattingList.g.cpp"
 #endif
 
+#include <winrt/Microsoft.UI.Windowing.h>
 #include <winrt/Microsoft.Windows.ApplicationModel.Resources.h>
 #include <winrt/Windows.UI.Core.h>
 #include <winrt/Microsoft.Web.WebView2.Core.h>
@@ -38,6 +39,8 @@ namespace winrt::MainApplication::implementation
         : m_selectedChat{nullptr}
         , m_activatedChatUuid(L"")
         , m_shiftDown(false)
+        , m_isPaneOpen(true)
+        , m_beforePaneOpen(true)
     {
         InitializeComponent();
 
@@ -58,11 +61,146 @@ namespace winrt::MainApplication::implementation
         for (auto pair: uuids)
             ChatList().Items().Append(ChatThumbnail(GetWStringFromString(Utf8ToAnsi((*m_data)[pair.first.c_str()]["title"].asCString())), pair.second, GetWStringFromString(pair.first.c_str())));
         
+        // 한글때문에 여기서 처리
         input().PlaceholderText(L"질문을 입력하세요. (줄바꿈 Shift + Enter)");
 
+        // 툴 팁 설정
+        {
+            Controls::ToolTip tooltip{};
+            tooltip.Content(box_value(L"새 채팅"));
+            Controls::ToolTipService::SetToolTip(NewChat(), tooltip);
+        }
+        {
+            Controls::ToolTip tooltip{};
+            tooltip.Content(box_value(L"제목 변경"));
+            Controls::ToolTipService::SetToolTip(EditTitle(), tooltip);
+        }
+        {
+            Controls::ToolTip tooltip{};
+            tooltip.Content(box_value(L"삭제"));
+            Controls::ToolTipService::SetToolTip(Delete(), tooltip);
+        }
+        {
+            Controls::ToolTip tooltip{};
+            tooltip.Content(box_value(L"전송"));
+            Controls::ToolTipService::SetToolTip(SendBtn(), tooltip);
+        }
+        {
+            Controls::ToolTip tooltip{};
+            tooltip.Content(box_value(L"다시 생성"));
+            Controls::ToolTipService::SetToolTip(Tool(), tooltip);
+        }
+        {
+            Controls::ToolTip tooltip{};
+            tooltip.Content(box_value(L"항상 위에 유지"));
+            Controls::ToolTipService::SetToolTip(AlwaysTop(), tooltip);
+        }
+        {
+            Controls::ToolTip tooltip{};
+            tooltip.Content(box_value(L"채팅 목록 닫기"));
+            Controls::ToolTipService::SetToolTip(ClosePane(), tooltip);
+        }
+
+        // 이벤트 등록
         timer.Tick({ this, &ChattingList::ToolBtnUpdate });
         timer.Interval(100ms);
         timer.Start();
+    }
+
+    void ChattingList::AlwaysTop_Click(winrt::Windows::Foundation::IInspectable const& sender, winrt::Microsoft::UI::Xaml::RoutedEventArgs const& e)
+    {
+        // 윈도우 위치 및 크기 정보
+        auto position = Application::Current().as<App>()->window.as<MainWindow>()->AppWindow().Position();
+        auto size = Application::Current().as<App>()->window.as<MainWindow>()->AppWindow().Size();
+
+        auto presenter = Application::Current().as<App>()->window.as<MainWindow>()->AppWindow().Presenter().as<Microsoft::UI::Windowing::OverlappedPresenter>();
+        if (!presenter.IsAlwaysOnTop()) {
+            presenter.IsMaximizable(false);
+            presenter.IsMinimizable(false);
+            presenter.IsAlwaysOnTop(true);
+
+            AlwaysTopIcon().Glyph(L"\uEE47");
+            Application::Current().as<App>()->window.as<MainWindow>()->AppWindow().MoveAndResize({ position.X + size.Width - 480, position.Y, 480, 600 });
+            Application::Current().as<App>()->window.as<MainWindow>()->mainNav().PaneDisplayMode(Controls::NavigationViewPaneDisplayMode::LeftMinimal);
+            
+            Controls::ToolTip tooltip{};
+            tooltip.Content(box_value(L"원래대로 돌아가기"));
+            Controls::ToolTipService::SetToolTip(AlwaysTop(), tooltip);
+
+            m_beforePaneOpen = m_isPaneOpen;
+            if (m_isPaneOpen)
+            {
+                m_isPaneOpen = false;
+                ClosePaneIcon().Glyph(L"\uEA5B");
+                ListPart().Visibility(Visibility::Collapsed);
+                ListColumn().Width({ 0, GridUnitType::Pixel });
+                ViewColumn().Width({ 1, GridUnitType::Star });
+
+                Controls::ToolTip tooltip{};
+                tooltip.Content(box_value(L"채팅 목록 닫기"));
+                Controls::ToolTipService::SetToolTip(ClosePane(), tooltip);
+            }
+        }
+        else
+        {
+            presenter.IsMaximizable(true);
+            presenter.IsMinimizable(true);
+            presenter.IsAlwaysOnTop(false);
+            
+            AlwaysTopIcon().Glyph(L"\uEE49");
+            Application::Current().as<App>()->window.as<MainWindow>()->AppWindow().MoveAndResize({ position.X + size.Width - 1200, position.Y, 1200, 720 });
+            Application::Current().as<App>()->window.as<MainWindow>()->mainNav().PaneDisplayMode(Controls::NavigationViewPaneDisplayMode::LeftCompact);
+            
+            Controls::ToolTip tooltip{};
+            tooltip.Content(box_value(L"항상 위에 유지"));
+            Controls::ToolTipService::SetToolTip(AlwaysTop(), tooltip);
+
+            if (m_beforePaneOpen != m_isPaneOpen)
+            {
+                if (m_beforePaneOpen)
+                {
+                    m_isPaneOpen = true;
+                    ClosePaneIcon().Glyph(L"\uEA49");
+                    ListPart().Visibility(Visibility::Visible);
+                    ListColumn().Width({ 0.25, GridUnitType::Star });
+                    ViewColumn().Width({ 0.75, GridUnitType::Star });
+
+                    Controls::ToolTip tooltip{};
+                    tooltip.Content(box_value(L"채팅 목록 열기"));
+                    Controls::ToolTipService::SetToolTip(ClosePane(), tooltip);
+                }
+            }
+        }
+    }
+
+    void ChattingList::ClosePane_Click(winrt::Windows::Foundation::IInspectable const& sender, winrt::Microsoft::UI::Xaml::RoutedEventArgs const& e)
+    {
+        if (m_isPaneOpen)
+        {
+            m_isPaneOpen = false;
+            ClosePaneIcon().Glyph(L"\uEA5B");
+            ListPart().Visibility(Visibility::Collapsed);
+
+            ListColumn().Width({ 0, GridUnitType::Pixel });
+            ViewColumn().Width({ 1, GridUnitType::Star });
+
+            Controls::ToolTip tooltip{};
+            tooltip.Content(box_value(L"채팅 목록 열기"));
+            Controls::ToolTipService::SetToolTip(ClosePane(), tooltip);
+        }
+        else
+        {
+            m_isPaneOpen = true;
+            ClosePaneIcon().Glyph(L"\uEA49");
+            ListPart().Visibility(Visibility::Visible);
+
+            ListColumn().Width({ 0.25, GridUnitType::Star });
+            ViewColumn().Width({ 0.75, GridUnitType::Star });
+
+            Controls::ToolTip tooltip{};
+            tooltip.Content(box_value(L"채팅 목록 닫기"));
+            Controls::ToolTipService::SetToolTip(ClosePane(), tooltip);
+        }
     }
 
     void ChattingList::ChatList_SelectionChanged(winrt::Windows::Foundation::IInspectable const& sender, winrt::Microsoft::UI::Xaml::Controls::SelectionChangedEventArgs const& e)
@@ -75,10 +213,6 @@ namespace winrt::MainApplication::implementation
                 Application::Current().as<App>()->window.as<MainWindow>()->mainNav().Header(box_value(m_selectedChat.Title()));
                 if (!(m_activatedChatUuid == m_selectedChat.Uuid())) {
                     m_activatedChatUuid = m_selectedChat.Uuid();
-                    if (m_chatInfo[GetStringFromWstring(m_activatedChatUuid)].isRunning)
-                        ToolIcon().Glyph(L"\uE71A");
-                    else
-                        ToolIcon().Glyph(L"\uE72C");
                     mdViewer().Source(Windows::Foundation::Uri((L"http://localhost:" + std::to_wstring(m_port) + L"/chat/" + m_activatedChatUuid + L"?key=" + m_key).c_str()));
                 }
             }
@@ -186,7 +320,7 @@ namespace winrt::MainApplication::implementation
         json_body["stream"] = true;
         OpenAI::OpenAIStorage::Get()->Create(OpenAI::EndPoint::Chat, json_body, GetStringFromWstring(m_activatedChatUuid), &m_chatInfo[GetStringFromWstring(m_activatedChatUuid)]);
     }
-    
+
     void ChattingList::Tool_Click(winrt::Windows::Foundation::IInspectable const& sender, winrt::Microsoft::UI::Xaml::RoutedEventArgs const& e)
     {
         if (m_chatInfo[GetStringFromWstring(m_activatedChatUuid)].started)
@@ -219,12 +353,24 @@ namespace winrt::MainApplication::implementation
         if (!m_chatInfo[GetStringFromWstring(m_activatedChatUuid)].isRunning)
         {
             if (ToolIcon().Glyph() == L"\uE71A")
+            {
                 ToolIcon().Glyph(L"\uE72C");
+
+                Controls::ToolTip tooltip{};
+                tooltip.Content(box_value(L"다시 생성"));
+                Controls::ToolTipService::SetToolTip(Tool(), tooltip);
+            }
         }
         else
         {
             if (m_chatInfo[GetStringFromWstring(m_activatedChatUuid)].started && ToolIcon().Glyph() == L"\uE72C")
+            {
                 ToolIcon().Glyph(L"\uE71A");
+
+                Controls::ToolTip tooltip{};
+                tooltip.Content(box_value(L"답변 중지"));
+                Controls::ToolTipService::SetToolTip(Tool(), tooltip);
+            }
         }
     }
 
@@ -260,8 +406,8 @@ namespace winrt::MainApplication::implementation
     void ChattingList::input_SizeChanged(winrt::Windows::Foundation::IInspectable const& sender, winrt::Microsoft::UI::Xaml::SizeChangedEventArgs const& e)
     {
         auto size = e.NewSize();
-        Microsoft::UI::Xaml::GridLength length {};
-        length.GridUnitType = Microsoft::UI::Xaml::GridUnitType::Pixel;
+        GridLength length {};
+        length.GridUnitType = GridUnitType::Pixel;
         length.Value = size.Height;
         inputBoxRow().Height(length);
     }
