@@ -5,7 +5,7 @@
 #include <json/json.h>
 
 #define DATA UserData::UserDataFile::Get()->data
-#define SAFE_ACCESS std::lock_guard<std::mutex>(UserData::UserDataFile::Get()->m)
+#define SAFE_ACCESS auto mt = std::lock_guard<std::mutex>(UserData::UserDataFile::Get()->m)
 #define SaveData() UserData::UserDataFile::Get()->Save()
 
 namespace UserData

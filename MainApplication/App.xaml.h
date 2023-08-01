@@ -13,7 +13,7 @@ namespace winrt::MainApplication::implementation
 
         void OnLaunched(Microsoft::UI::Xaml::LaunchActivatedEventArgs const&);
 
-    private:
+    public:
         winrt::Microsoft::UI::Xaml::Window window{ nullptr };
     };
 }

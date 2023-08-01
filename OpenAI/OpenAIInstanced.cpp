@@ -54,6 +54,11 @@ namespace OpenAI {
 		return userPtr;
 	}
 
+	CURL* OpenAI::GetHandel()
+	{
+		return curl;
+	}
+
 	bool OpenAI::IsAvailiable()
 	{
 		return isAvailable;
@@ -137,10 +142,12 @@ namespace OpenAI {
 			std::string errors;
 			bool parse_successed = reader->parse(response.c_str(), response.c_str() + response.size(), &root, &errors);
 			if (parse_successed) {
+				curl_mime_free(mime_form);
 				return root;
 			}
 			else
 			{
+				curl_mime_free(mime_form);
 				return Json::Value{ "error" };
 			}
 		}
@@ -149,7 +156,6 @@ namespace OpenAI {
 			std::cout << curl_easy_strerror(res) << std::endl;
 		}
 
-		// free mime form
 		curl_mime_free(mime_form);
 	}
 	

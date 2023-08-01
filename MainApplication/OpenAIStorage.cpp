@@ -2,6 +2,8 @@
 #include "OpenAIStorage.h"
 #include "FileSystem.h"
 
+#include <algorithm>
+
 namespace OpenAI
 {
 	std::string OpenAIStorage::m_key;
@@ -33,12 +35,13 @@ namespace OpenAI
 		delete instance;
 	}
 	
-	void OpenAIStorage::Create(EndPoint eType, Json::Value& json_body, const std::string& uuid, bool* p_isRunning)
+	void OpenAIStorage::Create(EndPoint eType, Json::Value& json_body, const std::string& uuid, _chatInfo* p_chatInfo)
 	{
 		if (openAISessions.size() == 0)
 		{
 			auto oai = new OpenAI(DATA["API_KEY"].asCString(), DATA["ORGANZATION_ID"].asCString());
-			_msgData* data = new _msgData(true, uuid, p_isRunning);
+			_msgData* data = new _msgData(uuid, p_chatInfo);
+			data->curl = oai->GetHandel();
 
 			oai->SetWriteFunction(OpenAIStorage::writeFunctionChat);
 			oai->SetUserPointer(data);
@@ -54,10 +57,11 @@ namespace OpenAI
 				{
 					found = true;
 					auto data = static_cast<_msgData*>(session->GetUserPointer());
-					data->isBegin = true;
 					data->uuid = uuid;
 					data->msg = "";
-					data->isRunning = p_isRunning;
+					data->curl = session->GetHandel();
+					data->chatInfo = p_chatInfo;
+					curl_easy_setopt(data->curl, CURLOPT_TIMEOUT_MS, 0);
 
 					session->SetWriteFunction(OpenAIStorage::writeFunctionChat);
 					session->SetUserPointer(data);
@@ -68,7 +72,8 @@ namespace OpenAI
 			if (!found)
 			{
 				auto oai = new OpenAI(DATA["API_KEY"].asCString(), DATA["ORGANZATION_ID"].asCString());
-				_msgData* data = new _msgData(true, uuid, p_isRunning);
+				_msgData* data = new _msgData(uuid, p_chatInfo);
+				data->curl = oai->GetHandel();
 
 				oai->SetWriteFunction(OpenAIStorage::writeFunctionChat);
 				oai->SetUserPointer(data);
@@ -76,6 +81,17 @@ namespace OpenAI
 				std::thread(&OpenAI::Create, openAISessions[openAISessions.size() - 1], eType, json_body).detach();
 			}
 		}
+	}
+
+	bool OpenAIStorage::CheckAllCompleted()
+	{
+		bool result = true;
+		for (auto session : openAISessions)
+		{
+			if (!session->IsAvailiable() && static_cast<_msgData*>(session->GetUserPointer())->chatInfo->isRunning)
+				result = false;
+		}
+		return result;
 	}
 
 	size_t OpenAIStorage::writeFunctionChat(void* ptr, size_t size, size_t nmemb, void* data)
@@ -91,6 +107,27 @@ namespace OpenAI
 		std::string errors;
 
 		_msgData* msgData = static_cast<_msgData*>(data);
+
+		if (msgData->chatInfo->del)
+		{
+			curl_easy_setopt(msgData->curl, CURLOPT_TIMEOUT_MS, 1);
+			msgData->chatInfo->isRunning = false;
+			msgData->chatInfo->isBegin = true;
+			msgData->chatInfo->started = false;
+			return size * nmemb;
+		}
+
+		if (msgData->chatInfo->stop)
+		{
+			curl_easy_setopt(msgData->curl, CURLOPT_TIMEOUT_MS, 1);
+			msgData->chatInfo->isRunning = false;
+			msgData->chatInfo->isBegin = true;
+			msgData->chatInfo->started = false;
+			SAFE_ACCESS;
+			DATA["chatting"][msgData->uuid]["data"].append(CreateMessage("assistant", msgData->msg.c_str()));
+			SaveData();
+			return size * nmemb;
+		}
 
 		if (json.find("data") != std::string::npos)
 		{
@@ -111,19 +148,22 @@ namespace OpenAI
 								msgData->uuid.c_str(),
 								msgData->msg,
 								"assistant",
-								msgData->isBegin ? "start" : "running",
+								msgData->chatInfo->isBegin ? "start" : "running",
 								false
 							);
 							if (CLIENT.isConnected())
 								CLIENT.send(msg);
 
-							msgData->isBegin = false;
+							msgData->chatInfo->isBegin = false;
+							msgData->chatInfo->started = true;
 						}
 					}
 				}
 				catch (std::exception&)
 				{
-					*(msgData->isRunning) = false;
+					msgData->chatInfo->isRunning = false;
+					msgData->chatInfo->isBegin = true;
+					msgData->chatInfo->started = false;
 					SAFE_ACCESS;
 					DATA["chatting"][msgData->uuid]["data"].append(CreateMessage("assistant", msgData->msg.c_str()));
 					SaveData();
@@ -132,6 +172,7 @@ namespace OpenAI
 		}
 		else
 		{
+			msgData->chatInfo->isRunning = false;
 			bool parsing_successful = reader->parse(json.c_str(), json.c_str() + json.size(), &root, &errors);
 			if (parsing_successful) {
 				auto msg = MDView::CreateMessage(

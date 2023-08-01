@@ -9,7 +9,8 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d"
-    NavigationCacheMode="Enabled">
+    NavigationCacheMode="Enabled"
+    KeyUp="Page_KeyUp">
 
     <Page.Resources>
         <DataTemplate x:Key="ChatThumbnail" x:DataType="local:ChatThumbnail">
@@ -34,31 +35,49 @@
                 <RowDefinition Height="48"/>
                 <RowDefinition/>
             </Grid.RowDefinitions>
-            <Button Grid.Row="0" x:Name="NewChat" Margin="5,0,5,0" Width="{Binding ActualWidth, ElementName=ListPart}" Height="48" FontSize="16" Click="NewChatPage">New Chat</Button>
+            <StackPanel Orientation="Horizontal" Grid.Row="0">
+                <Button x:Name="NewChat" Margin="0,0,5,0" Height="48" FontSize="16" Click="NewChatPage" ToolTipService.ToolTip="New Chat">
+                    <FontIcon Glyph="&#xE710;"/>
+                </Button>
+                <Button x:Name="EditTitle" Margin="0,0,5,0" Height="48" FontSize="16" Click="EditTitle_Click" ToolTipService.ToolTip="Edit Title">
+                    <FontIcon Glyph="&#xE70F;"/>
+                </Button>
+                <Button x:Name="Delete" Margin="0,0,5,0" Height="48" FontSize="16" Click="Delete_Click" ToolTipService.ToolTip="Delete Chat">
+                    <FontIcon Glyph="&#xE74D;"/>
+                </Button>
+            </StackPanel>
             <ListView Grid.Row="1" ItemTemplate="{StaticResource ChatThumbnail}" x:Name="ChatList" SelectionMode="Extended" SelectionChanged="ChatList_SelectionChanged"/>
         </Grid>
         <Grid Grid.Row="1" Grid.Column="1">
             <Grid.RowDefinitions>
                 <RowDefinition Height="*"/>
-                <RowDefinition Height="96" />
+                <RowDefinition x:Name="inputBoxRow" MinHeight="96"/>
             </Grid.RowDefinitions>
-            <WebView2 x:Name="mdViewer" Grid.Row="0" DefaultBackgroundColor="{StaticResource SolidBackgroundFillColorBaseAlt}" Source="http://localhost:5000"/>
+            <WebView2 x:Name="mdViewer" Grid.Row="0" DefaultBackgroundColor="{StaticResource SolidBackgroundFillColorBaseAlt}" Source="http://localhost:5000" CoreWebView2Initialized="mdViewer_CoreWebView2Initialized"/>
             <Grid Grid.Row="1">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition />
                     <ColumnDefinition Width="48"/>
                 </Grid.ColumnDefinitions>
                 <StackPanel Grid.Column="0" VerticalAlignment="Bottom">
-                    <TextBox x:Name="input" TextWrapping="Wrap" AcceptsReturn="True"  
-                     FontSize="17" Padding="10" Height="96" MaxLength="2000" TextChanged="input_TextChanged"></TextBox>
+                    <TextBox x:Name="input" TextWrapping="Wrap" FontSize="17" Padding="10" MinHeight="96" MaxHeight="250"  MaxLength="2000" TextChanged="input_TextChanged" KeyDown="input_KeyDown" SizeChanged="input_SizeChanged"></TextBox>
                 </StackPanel>
                 <StackPanel Grid.Column="1" VerticalAlignment="Bottom">
-                    <Button x:Name="Send" Width="48" Height="48" Background="Transparent" Click="Send">
+                    <Button x:Name="Tool" Width="46" Height="46" Margin="1" Click="Tool_Click">
+                        <FontIcon x:Name="ToolIcon" Glyph="&#xE72C;"/>
+                    </Button>
+                    <Button x:Name="SendBtn" Width="46" Height="46" Margin="1" Click="Send" >
                         <FontIcon x:Name="SendIcon" Glyph="&#xE724;"/>
                     </Button>
                 </StackPanel>
             </Grid>
         </Grid>
+
+        <ContentDialog x:Name="EditTitleContentDialog">
+            <StackPanel HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+                <TextBox x:Name="titleInput" FontSize="15" MaxLength="30"/>
+            </StackPanel>
+        </ContentDialog>
         
     </Grid>
 </Page>

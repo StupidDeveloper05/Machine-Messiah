@@ -26,6 +26,7 @@ namespace OpenAI {
 		void SetWriteFunction(WriteFunc customFuncPtr = nullptr);
 		void SetUserPointer(void* _userPtr);
 		void* GetUserPointer();
+		CURL* GetHandel();
 		bool IsAvailiable();
 
 	private:

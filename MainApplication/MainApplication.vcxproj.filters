@@ -14,6 +14,9 @@
     <Page Include="Settings.xaml">
       <Filter>Pages</Filter>
     </Page>
+    <Page Include="SplashScreen.xaml">
+      <Filter>Splash Screen</Filter>
+    </Page>
   </ItemGroup>
   <ItemGroup>
     <Midl Include="App.idl" />
@@ -97,6 +100,9 @@
     </Filter>
     <Filter Include="OpenAI">
       <UniqueIdentifier>{c7a19549-f265-4fa3-9e07-094cf4f246ba}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Splash Screen">
+      <UniqueIdentifier>{124b0b32-2903-4503-94dd-f88cf633500a}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>

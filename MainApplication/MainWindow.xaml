@@ -16,7 +16,7 @@
             <RowDefinition />
         </Grid.RowDefinitions>
 
-        <Grid x:Name="AppTitleBar" Height="32" >
+        <Grid x:Name="AppTitleBar" Height="32">
             <Rectangle x:Name="BackgroundElement" />
             <Grid>
                 <Grid.ColumnDefinitions>
@@ -43,5 +43,6 @@
             </NavigationView.MenuItems>
             <Frame Margin="0,0,0,0" x:Name="contentFrame" />
         </NavigationView>
+        
     </Grid>
 </Window>

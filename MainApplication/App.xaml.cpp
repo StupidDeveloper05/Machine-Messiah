@@ -4,15 +4,17 @@
 #include "pch.h"
 
 #include "App.xaml.h"
-#include "MainWindow.xaml.h"
+#include "SplashScreen.xaml.h"
 
 using namespace winrt;
 using namespace Windows::Foundation;
 using namespace Microsoft::UI::Xaml;
 using namespace Microsoft::UI::Xaml::Controls;
 using namespace Microsoft::UI::Xaml::Navigation;
+
 using namespace MainApplication;
 using namespace MainApplication::implementation;
+using namespace std::chrono_literals;
 
 // To learn more about WinUI, the WinUI project structure,
 // and more about our project templates, see: http://aka.ms/winui-project-info.
@@ -43,6 +45,6 @@ App::App()
 /// <param name="e">Details about the launch request and process.</param>
 void App::OnLaunched(LaunchActivatedEventArgs const& e)
 {
-    window = make<MainWindow>();
+    window = make<SplashScreen>();
     window.Activate();
 }

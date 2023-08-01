@@ -143,6 +143,10 @@
       <DependentUpon>Settings.xaml</DependentUpon>
       <SubType>Code</SubType>
     </ClInclude>
+    <ClInclude Include="SplashScreen.xaml.h">
+      <DependentUpon>SplashScreen.xaml</DependentUpon>
+      <SubType>Code</SubType>
+    </ClInclude>
     <ClInclude Include="utils.h" />
     <ClInclude Include="VoiceCommand.xaml.h">
       <DependentUpon>VoiceCommand.xaml</DependentUpon>
@@ -156,6 +160,9 @@
     </Page>
     <Page Include="MainWindow.xaml" />
     <Page Include="Settings.xaml">
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="SplashScreen.xaml">
       <SubType>Designer</SubType>
     </Page>
     <Page Include="VoiceCommand.xaml">
@@ -184,6 +191,10 @@
       <DependentUpon>Settings.xaml</DependentUpon>
       <SubType>Code</SubType>
     </ClCompile>
+    <ClCompile Include="SplashScreen.xaml.cpp">
+      <DependentUpon>SplashScreen.xaml</DependentUpon>
+      <SubType>Code</SubType>
+    </ClCompile>
     <ClCompile Include="VoiceCommand.xaml.cpp">
       <DependentUpon>VoiceCommand.xaml</DependentUpon>
       <SubType>Code</SubType>
@@ -205,6 +216,10 @@
     </Midl>
     <Midl Include="Settings.idl">
       <DependentUpon>Settings.xaml</DependentUpon>
+      <SubType>Code</SubType>
+    </Midl>
+    <Midl Include="SplashScreen.idl">
+      <DependentUpon>SplashScreen.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Midl>
     <Midl Include="VoiceCommand.idl">
