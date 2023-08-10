@@ -15,15 +15,17 @@ namespace OpenAI {
 	};
 
 	typedef size_t(*WriteFunc)(void*, size_t, size_t, void*);
+	typedef void(*FinishFunc)(void*);
 	class OpenAI
 	{
 	public:
-		OpenAI(const std::string& api_key, const std::string& _authorization);
+		OpenAI(const std::string& api_key);
 		~OpenAI();
 
 	public:
 		Json::Value Create(EndPoint eType, Json::Value& json_body);
 		void SetWriteFunction(WriteFunc customFuncPtr = nullptr);
+		void SetFinishCallback(FinishFunc customFuncPtr = nullptr);
 		void SetUserPointer(void* _userPtr);
 		void* GetUserPointer();
 		CURL* GetHandel();
@@ -48,9 +50,8 @@ namespace OpenAI {
 		std::string endpoint;
 		std::string contentType;
 
-		// authorization setting
+		// api key
 		std::string apiKey;
-		std::string authorization;
 
 		// context
 		CURL* curl;
@@ -60,9 +61,10 @@ namespace OpenAI {
 		bool	isAvailable;
 
 		WriteFunc write_func = writeFunctionDefault;
+		FinishFunc finish_callback = nullptr;
 	};
 
-	Json::Value CreateMessage(const char* role, const char* content);
+	Json::Value CreateMessage(const char* role, const char* content, const char* name="");
 }
 
 #endif

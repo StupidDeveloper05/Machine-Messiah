@@ -9,7 +9,7 @@ namespace winrt::MainApplication::implementation
 {
     struct MainWindow : MainWindowT<MainWindow>
     {
-        MainWindow();
+        MainWindow(unsigned short port, hstring const& key);
 
         void mainNav_SelectionChanged(winrt::Microsoft::UI::Xaml::Controls::NavigationView const& sender, winrt::Microsoft::UI::Xaml::Controls::NavigationViewSelectionChangedEventArgs const& args);
         Windows::Foundation::IAsyncAction AppClosed(winrt::Microsoft::UI::Windowing::AppWindow const& sender, winrt::Microsoft::UI::Windowing::AppWindowClosingEventArgs const& args);

@@ -13,13 +13,12 @@ namespace MDView {
 		const std::string& uuid,
 		const std::string& msg,
 		const std::string& type,
-		const std::string& status,
-		const bool clear
+		const std::string& status
 	);
 
 	class Client {
 	public:
-		Client() = default;
+		Client();
 		~Client();
 
 	public:

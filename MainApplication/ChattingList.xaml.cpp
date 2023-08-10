@@ -21,6 +21,8 @@
 
 #include "utils.h"
 #include "FileSystem.h"
+#include "FunctionManager.h"
+
 #include "App.xaml.h"
 #include "MainWindow.xaml.h"
 
@@ -41,6 +43,8 @@ namespace winrt::MainApplication::implementation
         , m_shiftDown(false)
         , m_isPaneOpen(true)
         , m_beforePaneOpen(true)
+        , m_isAlwaysTop(false)
+        , m_loaded(false)
     {
         InitializeComponent();
 
@@ -58,11 +62,15 @@ namespace winrt::MainApplication::implementation
         std::sort(uuids.begin(), uuids.end(), cmp);
 
         // 채팅 리스트뷰에 추가
-        for (auto pair: uuids)
+        for (auto pair : uuids)
+        {
             ChatList().Items().Append(ChatThumbnail(GetWStringFromString(Utf8ToAnsi((*m_data)[pair.first.c_str()]["title"].asCString())), pair.second, GetWStringFromString(pair.first.c_str())));
-        
+            m_chatInfo[pair.first.c_str()].smart_mode = (*m_data)[pair.first.c_str()]["smart_mode"].asBool();
+        }
+
         // 한글때문에 여기서 처리
         input().PlaceholderText(L"질문을 입력하세요. (줄바꿈 Shift + Enter)");
+        createApiKey().Content(box_value(L"API 키 생성하기"));
 
         // 툴 팁 설정
         {
@@ -100,6 +108,11 @@ namespace winrt::MainApplication::implementation
             tooltip.Content(box_value(L"채팅 목록 닫기"));
             Controls::ToolTipService::SetToolTip(ClosePane(), tooltip);
         }
+        {
+            Controls::ToolTip tooltip{};
+            tooltip.Content(box_value(L"API 키 변경"));
+            Controls::ToolTipService::SetToolTip(ApiKeyEdit(), tooltip);
+        }
 
         // 이벤트 등록
         timer.Tick({ this, &ChattingList::ToolBtnUpdate });
@@ -119,27 +132,13 @@ namespace winrt::MainApplication::implementation
             presenter.IsMinimizable(false);
             presenter.IsAlwaysOnTop(true);
 
-            AlwaysTopIcon().Glyph(L"\uEE47");
             Application::Current().as<App>()->window.as<MainWindow>()->AppWindow().MoveAndResize({ position.X + size.Width - 480, position.Y, 480, 600 });
             Application::Current().as<App>()->window.as<MainWindow>()->mainNav().PaneDisplayMode(Controls::NavigationViewPaneDisplayMode::LeftMinimal);
-            
-            Controls::ToolTip tooltip{};
-            tooltip.Content(box_value(L"원래대로 돌아가기"));
-            Controls::ToolTipService::SetToolTip(AlwaysTop(), tooltip);
 
+            _AlwaysTopOn();
             m_beforePaneOpen = m_isPaneOpen;
             if (m_isPaneOpen)
-            {
-                m_isPaneOpen = false;
-                ClosePaneIcon().Glyph(L"\uEA5B");
-                ListPart().Visibility(Visibility::Collapsed);
-                ListColumn().Width({ 0, GridUnitType::Pixel });
-                ViewColumn().Width({ 1, GridUnitType::Star });
-
-                Controls::ToolTip tooltip{};
-                tooltip.Content(box_value(L"채팅 목록 닫기"));
-                Controls::ToolTipService::SetToolTip(ClosePane(), tooltip);
-            }
+                _ClosePane();
         }
         else
         {
@@ -147,28 +146,14 @@ namespace winrt::MainApplication::implementation
             presenter.IsMinimizable(true);
             presenter.IsAlwaysOnTop(false);
             
-            AlwaysTopIcon().Glyph(L"\uEE49");
             Application::Current().as<App>()->window.as<MainWindow>()->AppWindow().MoveAndResize({ position.X + size.Width - 1200, position.Y, 1200, 720 });
             Application::Current().as<App>()->window.as<MainWindow>()->mainNav().PaneDisplayMode(Controls::NavigationViewPaneDisplayMode::LeftCompact);
-            
-            Controls::ToolTip tooltip{};
-            tooltip.Content(box_value(L"항상 위에 유지"));
-            Controls::ToolTipService::SetToolTip(AlwaysTop(), tooltip);
 
+            _AlwaysTopOff();
             if (m_beforePaneOpen != m_isPaneOpen)
             {
                 if (m_beforePaneOpen)
-                {
-                    m_isPaneOpen = true;
-                    ClosePaneIcon().Glyph(L"\uEA49");
-                    ListPart().Visibility(Visibility::Visible);
-                    ListColumn().Width({ 0.25, GridUnitType::Star });
-                    ViewColumn().Width({ 0.75, GridUnitType::Star });
-
-                    Controls::ToolTip tooltip{};
-                    tooltip.Content(box_value(L"채팅 목록 열기"));
-                    Controls::ToolTipService::SetToolTip(ClosePane(), tooltip);
-                }
+                    _OpenPane();
             }
         }
     }
@@ -176,30 +161,90 @@ namespace winrt::MainApplication::implementation
     void ChattingList::ClosePane_Click(winrt::Windows::Foundation::IInspectable const& sender, winrt::Microsoft::UI::Xaml::RoutedEventArgs const& e)
     {
         if (m_isPaneOpen)
-        {
-            m_isPaneOpen = false;
-            ClosePaneIcon().Glyph(L"\uEA5B");
-            ListPart().Visibility(Visibility::Collapsed);
-
-            ListColumn().Width({ 0, GridUnitType::Pixel });
-            ViewColumn().Width({ 1, GridUnitType::Star });
-
-            Controls::ToolTip tooltip{};
-            tooltip.Content(box_value(L"채팅 목록 열기"));
-            Controls::ToolTipService::SetToolTip(ClosePane(), tooltip);
-        }
+            _ClosePane();
         else
+            _OpenPane();
+    }
+
+    void ChattingList::_OpenPane()
+    {
+        m_isPaneOpen = true;
+        ClosePaneIcon().Glyph(L"\uEA49");
+        ListPart().Visibility(Visibility::Visible);
+        ListColumn().Width({ 0.25, GridUnitType::Star });
+        ViewColumn().Width({ 0.75, GridUnitType::Star });
+
+        Controls::ToolTip tooltip{};
+        tooltip.Content(box_value(L"채팅 목록 닫기"));
+        Controls::ToolTipService::SetToolTip(ClosePane(), tooltip);
+    }
+
+    void ChattingList::_ClosePane()
+    {
+        m_isPaneOpen = false;
+        ClosePaneIcon().Glyph(L"\uEA5B");
+        ListPart().Visibility(Visibility::Collapsed);
+        ListColumn().Width({ 0, GridUnitType::Pixel });
+        ViewColumn().Width({ 1, GridUnitType::Star });
+
+        Controls::ToolTip tooltip{};
+        tooltip.Content(box_value(L"채팅 목록 열기"));
+        Controls::ToolTipService::SetToolTip(ClosePane(), tooltip);
+    }
+
+    void ChattingList::_AlwaysTopOn()
+    {
+        m_isAlwaysTop = true;
+        AlwaysTopIcon().Glyph(L"\uEE47");
+        Controls::ToolTip tooltip{};
+        tooltip.Content(box_value(L"원래대로 돌아가기"));
+        Controls::ToolTipService::SetToolTip(AlwaysTop(), tooltip);
+    }
+
+    void ChattingList::_AlwaysTopOff()
+    {
+        m_isAlwaysTop = false;
+        AlwaysTopIcon().Glyph(L"\uEE49");
+        Controls::ToolTip tooltip{};
+        tooltip.Content(box_value(L"항상 위에 유지"));
+        Controls::ToolTipService::SetToolTip(AlwaysTop(), tooltip);
+    }
+
+    void ChattingList::OnNavigatedTo(winrt::Microsoft::UI::Xaml::Navigation::NavigationEventArgs const& e)
+    {
+        // mdviewer setting
+        auto params = e.Parameter().as<Windows::Foundation::Collections::ValueSet>();
+        m_port = params.Lookup(L"port").as<unsigned short>();
+        m_key = params.Lookup(L"key").as<hstring>().c_str();
+        mdViewer().Source(Windows::Foundation::Uri((L"http://localhost:" + std::to_wstring(m_port) + L"/chat/" + m_activatedChatUuid + L"?key=" + m_key).c_str()));
+
+        if (!m_loaded)
         {
-            m_isPaneOpen = true;
-            ClosePaneIcon().Glyph(L"\uEA49");
-            ListPart().Visibility(Visibility::Visible);
+            m_loaded = true;
+            return;
+        }
 
-            ListColumn().Width({ 0.25, GridUnitType::Star });
-            ViewColumn().Width({ 0.75, GridUnitType::Star });
+        // change header text
+        if (m_selectedChat != nullptr)
+            Application::Current().as<App>()->window.as<MainWindow>()->mainNav().Header(box_value(m_selectedChat.Title()));
 
-            Controls::ToolTip tooltip{};
-            tooltip.Content(box_value(L"채팅 목록 닫기"));
-            Controls::ToolTipService::SetToolTip(ClosePane(), tooltip);
+        // check is always top
+        auto presenter = Application::Current().as<App>()->window.as<MainWindow>()->AppWindow().Presenter().as<Microsoft::UI::Windowing::OverlappedPresenter>();
+        if (presenter.IsAlwaysOnTop() && !m_isAlwaysTop)
+        {
+            _AlwaysTopOn();
+            m_beforePaneOpen = m_isPaneOpen;
+            if (m_isPaneOpen)
+                _ClosePane();
+        }
+        else if (!presenter.IsAlwaysOnTop() && m_isAlwaysTop)
+        {
+            _AlwaysTopOff();
+            if (m_beforePaneOpen != m_isPaneOpen)
+            {
+                if (m_beforePaneOpen)
+                    _OpenPane();
+            }
         }
     }
 
@@ -213,6 +258,8 @@ namespace winrt::MainApplication::implementation
                 Application::Current().as<App>()->window.as<MainWindow>()->mainNav().Header(box_value(m_selectedChat.Title()));
                 if (!(m_activatedChatUuid == m_selectedChat.Uuid())) {
                     m_activatedChatUuid = m_selectedChat.Uuid();
+                    SmartMode().IsChecked(m_chatInfo[GetStringFromWstring(m_activatedChatUuid)].smart_mode);
+                    SmartMode().IsEnabled(false);
                     mdViewer().Source(Windows::Foundation::Uri((L"http://localhost:" + std::to_wstring(m_port) + L"/chat/" + m_activatedChatUuid + L"?key=" + m_key).c_str()));
                 }
             }
@@ -225,16 +272,6 @@ namespace winrt::MainApplication::implementation
             }
         }
     }
-    
-    void ChattingList::OnNavigatedTo(winrt::Microsoft::UI::Xaml::Navigation::NavigationEventArgs const& e)
-    {
-        if (m_selectedChat != nullptr)
-            Application::Current().as<App>()->window.as<MainWindow>()->mainNav().Header(box_value(m_selectedChat.Title()));
-        auto params = e.Parameter().as<Windows::Foundation::Collections::ValueSet>();
-        m_port = params.Lookup(L"port").as<unsigned short>();
-        m_key = params.Lookup(L"key").as<hstring>().c_str();
-        mdViewer().Source(Windows::Foundation::Uri((L"http://localhost:" + std::to_wstring(m_port) + L"/chat/" + m_activatedChatUuid + L"?key=" + m_key).c_str()));
-    }
 
     Windows::Foundation::IAsyncAction ChattingList::mdViewer_CoreWebView2Initialized(winrt::Microsoft::UI::Xaml::Controls::WebView2 const& sender, winrt::Microsoft::UI::Xaml::Controls::CoreWebView2InitializedEventArgs const& args)
     {
@@ -243,6 +280,43 @@ namespace winrt::MainApplication::implementation
         mdViewer().CoreWebView2().Settings().AreBrowserAcceleratorKeysEnabled(false);
         mdViewer().CoreWebView2().Settings().AreDefaultContextMenusEnabled(false);
         mdViewer().CoreWebView2().Settings().AreDevToolsEnabled(false);
+        
+        if (std::string(DATA["API_KEY"].asCString()).empty())
+        {
+            ApiKeyInput().Title(box_value(L"OpenAI API 키 입력"));
+            ApiKeyInput().PrimaryButtonText(L"확인");
+            ApiKeyInput().IsPrimaryButtonEnabled(false);
+            apiKey().PlaceholderText(L"OpenAI API 키를 입력하세요.");
+            auto result = co_await ApiKeyInput().ShowAsync();
+            if (result == Controls::ContentDialogResult::Primary)
+            {
+                DATA["API_KEY"] = GetStringFromWstring(apiKey().Password().c_str());
+                SaveData();
+            }
+        }
+    }
+
+    void ChattingList::apiKey_PasswordChanged(winrt::Windows::Foundation::IInspectable const& sender, winrt::Microsoft::UI::Xaml::RoutedEventArgs const& e)
+    {
+        if (!apiKey().Password().empty())
+        {
+            ApiKeyInput().IsPrimaryButtonEnabled(true);
+        }
+    }
+
+    Windows::Foundation::IAsyncAction ChattingList::ApiKeyEdit_Click(winrt::Windows::Foundation::IInspectable const& sender, winrt::Microsoft::UI::Xaml::RoutedEventArgs const& e)
+    {
+        ApiKeyInput().Title(box_value(L"OpenAI API 키 변경"));
+        ApiKeyInput().PrimaryButtonText(L"확인");
+        ApiKeyInput().CloseButtonText(L"취소");
+        apiKey().PlaceholderText(L"OpenAI API 키를 입력하세요.");
+        apiKey().Password(to_hstring(DATA["API_KEY"].asCString()));
+        auto result = co_await ApiKeyInput().ShowAsync();
+        if (result == Controls::ContentDialogResult::Primary)
+        {
+            DATA["API_KEY"] = GetStringFromWstring(apiKey().Password().c_str());
+            SaveData();
+        }
     }
     
     void ChattingList::_Send()
@@ -269,6 +343,9 @@ namespace winrt::MainApplication::implementation
             m_chatInfo[GetStringFromWstring(m_activatedChatUuid)].isBegin = true;
             // started는 최초 소켓 전송이 이루어졌는지 여부임. 이를 통해 stop, regenerate 여부를 판단
             m_chatInfo[GetStringFromWstring(m_activatedChatUuid)].started = false;
+            // function 정보 - 함수 실행 정보 초기화
+            m_chatInfo[GetStringFromWstring(m_activatedChatUuid)].funcInfo.name = "";
+            m_chatInfo[GetStringFromWstring(m_activatedChatUuid)].funcInfo.arguments = "";
 
             // send user request to markdown viewer server
             auto msg = MDView::CreateMessage(
@@ -276,11 +353,10 @@ namespace winrt::MainApplication::implementation
                 GetStringFromWstring(m_activatedChatUuid),
                 inputText,
                 "user",
-                "start",
-                false
+                "start"
             );
             if (CLIENT.isConnected())
-                CLIENT.send(msg);
+            CLIENT.send(msg);
 
             // save to DATA
             (*m_data)[GetStringFromWstring(m_activatedChatUuid)]["data"].append(OpenAI::CreateMessage("user", inputText.c_str()));
@@ -290,6 +366,11 @@ namespace winrt::MainApplication::implementation
             json_body["model"] = "gpt-3.5-turbo";
             json_body["messages"] = (*m_data)[GetStringFromWstring(m_activatedChatUuid)]["data"];
             json_body["stream"] = true;
+            if (m_chatInfo[GetStringFromWstring(m_activatedChatUuid)].smart_mode)
+            {
+                json_body["model"] = "gpt-3.5-turbo-0613";
+                json_body["functions"] = SmartMode::FunctionManager::Get()->functions;
+            }
             OpenAI::OpenAIStorage::Get()->Create(OpenAI::EndPoint::Chat, json_body, GetStringFromWstring(m_activatedChatUuid), &m_chatInfo[GetStringFromWstring(m_activatedChatUuid)]);
 
             // save File
@@ -305,19 +386,36 @@ namespace winrt::MainApplication::implementation
         _Send();
     }
 
-    void ChattingList::_ReGenerate(bool _lastIsAssistant)
+    void ChattingList::_ReGenerate()
     {
+        auto msg = MDView::CreateMessage(
+            GetStringFromWstring(m_key),
+            GetStringFromWstring(m_activatedChatUuid),
+            "",
+            "clear_until_user",
+            "start"
+        );
+        if (CLIENT.isConnected())
+            CLIENT.send(msg);
+
         m_chatInfo[GetStringFromWstring(m_activatedChatUuid)].isRunning = true;
         m_chatInfo[GetStringFromWstring(m_activatedChatUuid)].stop = false;
         m_chatInfo[GetStringFromWstring(m_activatedChatUuid)].del = false;
-        m_chatInfo[GetStringFromWstring(m_activatedChatUuid)].isBegin = !_lastIsAssistant;
+        m_chatInfo[GetStringFromWstring(m_activatedChatUuid)].isBegin = true;
         m_chatInfo[GetStringFromWstring(m_activatedChatUuid)].started = false;
+        m_chatInfo[GetStringFromWstring(m_activatedChatUuid)].funcInfo.name = "";
+        m_chatInfo[GetStringFromWstring(m_activatedChatUuid)].funcInfo.arguments = "";
 
         // send user request to openai api
         Json::Value json_body;
         json_body["model"] = "gpt-3.5-turbo";
         json_body["messages"] = (*m_data)[GetStringFromWstring(m_activatedChatUuid)]["data"];
         json_body["stream"] = true;
+        if (m_chatInfo[GetStringFromWstring(m_activatedChatUuid)].smart_mode)
+        {
+            json_body["model"] = "gpt-3.5-turbo-0613";
+            json_body["functions"] = SmartMode::FunctionManager::Get()->functions;
+        }
         OpenAI::OpenAIStorage::Get()->Create(OpenAI::EndPoint::Chat, json_body, GetStringFromWstring(m_activatedChatUuid), &m_chatInfo[GetStringFromWstring(m_activatedChatUuid)]);
     }
 
@@ -330,17 +428,18 @@ namespace winrt::MainApplication::implementation
             int size = (*m_data)[GetStringFromWstring(m_activatedChatUuid)]["data"].size();
             if (size == 0)
                 return;
-            if ((*m_data)[GetStringFromWstring(m_activatedChatUuid)]["data"][size - 1]["role"].asCString() == "user")
-                _ReGenerate(false);
+            if (std::string((*m_data)[GetStringFromWstring(m_activatedChatUuid)]["data"][size - 1]["role"].asCString()) == "user")
+                _ReGenerate();
             else
             {
-                bool isLastAssistant = true;
-                if (std::string((*m_data)[GetStringFromWstring(m_activatedChatUuid)]["data"][size - 1]["content"].asCString()).empty())
-                    isLastAssistant = false;
-
                 Json::Value* ptr = nullptr;
-                (*m_data)[GetStringFromWstring(m_activatedChatUuid)]["data"].removeIndex(size - 1, ptr);
-                _ReGenerate(isLastAssistant);
+                for (int i = size - 1; i >= 0; --i)
+                {
+                    if (std::string((*m_data)[GetStringFromWstring(m_activatedChatUuid)]["data"][i]["role"].asCString()) == "user")
+                        break;
+                    (*m_data)[GetStringFromWstring(m_activatedChatUuid)]["data"].removeIndex(i, ptr);
+                }
+                _ReGenerate();
             }
         }
     }
@@ -431,7 +530,26 @@ namespace winrt::MainApplication::implementation
         ChatList().SelectedItem(nullptr);
         m_selectedChat = nullptr;
         m_activatedChatUuid = m_newChatUuid;
+        SmartMode().IsChecked(false);
+        SmartMode().IsEnabled(true);
         mdViewer().Source(Windows::Foundation::Uri((L"http://localhost:" + std::to_wstring(m_port) + L"/chat/" + m_activatedChatUuid + L"?key=" + m_key).c_str()));
+    }
+
+    void ChattingList::CreateNewChat(const std::wstring& _title)
+    {
+        std::wstring title = _title.substr(0, _title.size() < 30 ? _title.size() : 30);
+        auto t = time(NULL);
+        ChatList().Items().InsertAt(0, ChatThumbnail(title, t, m_newChatUuid));
+        ChatList().SelectedItem(ChatList().Items().GetAt(0));
+
+        DATA["chatting"][GetStringFromWstring(m_newChatUuid)]["title"] = AnsiToUtf8(GetStringFromWstring(title));
+        DATA["chatting"][GetStringFromWstring(m_newChatUuid)]["created_time"] = t;
+        DATA["chatting"][GetStringFromWstring(m_newChatUuid)]["smart_mode"] = SmartMode().IsChecked().GetBoolean();
+        DATA["chatting"][GetStringFromWstring(m_newChatUuid)]["data"] = Json::Value(Json::arrayValue);
+        m_chatInfo[GetStringFromWstring(m_newChatUuid)].smart_mode = SmartMode().IsChecked().GetBoolean();
+        SmartMode().IsEnabled(false);
+
+        m_newChatUuid = GenerateUUID();
     }
 
     Windows::Foundation::IAsyncAction ChattingList::EditTitle_Click(winrt::Windows::Foundation::IInspectable const& sender, winrt::Microsoft::UI::Xaml::RoutedEventArgs const& e)
@@ -489,6 +607,10 @@ namespace winrt::MainApplication::implementation
                 // navigation 헤더 변경
                 Application::Current().as<App>()->window.as<MainWindow>()->mainNav().Header(box_value(L"채팅 목록"));
 
+                // 스마트 모드 해제
+                SmartMode().IsChecked(false);
+                SmartMode().IsEnabled(true);
+
                 // 해당 chat을 삭제한 후 저장
                 SAFE_ACCESS;
                 DATA["chatting"].removeMember(GetStringFromWstring(m_activatedChatUuid));
@@ -500,20 +622,6 @@ namespace winrt::MainApplication::implementation
                 mdViewer().Source(Windows::Foundation::Uri((L"http://localhost:" + std::to_wstring(m_port) + L"/chat/" + m_activatedChatUuid + L"?key=" + m_key).c_str()));
             }
         }
-    }
-
-    void ChattingList::CreateNewChat(const std::wstring& _title)
-    {
-        std::wstring title = _title.substr(0, _title.size() < 30 ? _title.size() : 30);
-        auto t = time(NULL);
-        ChatList().Items().InsertAt(0, ChatThumbnail(title, t, m_newChatUuid));
-        ChatList().SelectedItem(ChatList().Items().GetAt(0));
-
-        DATA["chatting"][GetStringFromWstring(m_newChatUuid)]["title"] = AnsiToUtf8(GetStringFromWstring(title));
-        DATA["chatting"][GetStringFromWstring(m_newChatUuid)]["created_time"] = t;
-        DATA["chatting"][GetStringFromWstring(m_newChatUuid)]["data"] = Json::Value(Json::arrayValue);
-
-        m_newChatUuid = GenerateUUID();
     }
 
     std::string ChattingList::GetStringFromWstring(const std::wstring& str)

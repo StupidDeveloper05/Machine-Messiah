@@ -7,11 +7,15 @@
 #include "SplashScreen.g.cpp"
 #endif
 
+#include <unordered_map>
+#include <string>
 #include <Psapi.h>
 #include <tlhelp32.h>
 
 #include <io.h>
 #include <fstream>
+#include <filesystem>
+
 #include <winrt/Microsoft.UI.Windowing.h>
 #include <winrt/Windows.Storage.h>
 #include <winrt/Windows.ApplicationModel.h>
@@ -20,9 +24,12 @@
 #include <Client.h>
 #include "FileSystem.h"
 #include "OpenAIStorage.h"
+#include "ProgramManager.h"
 
 #include "App.xaml.h"
 #include "MainWindow.xaml.h"
+
+// #define MDVIEWER_DEV
 
 using namespace winrt;
 using namespace Microsoft::UI::Xaml;
@@ -59,10 +66,7 @@ namespace winrt::MainApplication::implementation
 
         timer.Stop();
 
-        Application::Current().as<App>()->window = make<MainWindow>();
-        Application::Current().as<App>()->window.as<MainWindow>()->m_key = m_key;
-        Application::Current().as<App>()->window.as<MainWindow>()->m_wkey = m_wkey;
-        Application::Current().as<App>()->window.as<MainWindow>()->m_port = m_port;
+        Application::Current().as<App>()->window = make<MainWindow>(m_port, to_hstring(m_wkey.c_str()));
         Application::Current().as<App>()->window.Activate();
 
         this->Close();
@@ -77,10 +81,25 @@ namespace winrt::MainApplication::implementation
         }
     }
 
+    Windows::Foundation::IAsyncAction SplashScreen::copy_folder(Windows::Storage::StorageFolder& source, Windows::Storage::StorageFolder& dest)
+    {
+        for (auto file : co_await source.GetFilesAsync())
+        {
+            file.CopyAsync(dest, file.Name(), Windows::Storage::NameCollisionOption::ReplaceExisting);
+        }
+
+        for (auto folder : co_await source.GetFoldersAsync())
+        {
+            auto childFolder = co_await dest.CreateFolderAsync(folder.Name(), Windows::Storage::CreationCollisionOption::ReplaceExisting);
+            co_await copy_folder(folder, childFolder);
+        }
+    }
+
     Windows::Foundation::IAsyncAction SplashScreen::open_markdown_server_and_load_data_async()
     {
         status().Text(L"준비중...");
 
+#ifndef MDVIEWER_DEV
         // create random key
         srand(time(NULL));
         std::wstring alphabet = L"abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
@@ -90,15 +109,19 @@ namespace winrt::MainApplication::implementation
         }
         m_key.assign(m_wkey.begin(), m_wkey.end());
         OpenAI::OpenAIStorage::Get()->m_key = m_key;
+#else 
+        m_wkey = L"hello";
+        m_key.assign(m_wkey.begin(), m_wkey.end());
+        OpenAI::OpenAIStorage::Get()->m_key = m_key;
+#endif
 
         status().Text(L"사용자 정보를 불러오는 중...");
         // get appx path
-        auto temp = Windows::Storage::ApplicationData::Current().TemporaryFolder().Path();
+        auto local = Windows::Storage::ApplicationData::Current().LocalFolder().Path();
         auto user = Windows::System::User::GetDefault();
-        Windows::Storage::StorageFolder storageFolder = co_await Windows::Storage::StorageFolder::GetFolderFromPathForUserAsync(user, temp);
+        Windows::Storage::StorageFolder storageFolder = co_await Windows::Storage::StorageFolder::GetFolderFromPathForUserAsync(user, local);
 
         // load user data
-        auto local = Windows::Storage::ApplicationData::Current().LocalFolder().Path();
         auto fNameW = std::wstring((local + L"\\userData.json").c_str());
         std::string fName; fName.assign(fNameW.begin(), fNameW.end());
         if (_access(fName.c_str(), 0) != -1)
@@ -110,9 +133,7 @@ namespace winrt::MainApplication::implementation
         }
         else
         {
-            DATA["name"] = "YOUR NAME";
-            DATA["API_KEY"] = "YOUR_API_KEY";
-            DATA["ORGANZATION_ID"] = "YOURS";
+            DATA["API_KEY"] = "";
             DATA["chatting"] = Json::Value(Json::objectValue);
 
             Json::StyledWriter writer;
@@ -124,22 +145,34 @@ namespace winrt::MainApplication::implementation
         }
 
         status().Text(L"프로그램을 시작하는 중...");
+
+#ifndef MDVIEWER_DEV
         // kill remain process
-        TerminatePreviousProcess(L"app.exe", (temp + L"\\app.exe").c_str());
+        TerminatePreviousProcess(L"app.exe", (local + L"\\app\\app.exe").c_str());
 
-        // get mdViewer path from installed path
+        // get mdViewer path from installed path and copy mdViewer to local folder
         auto pkgPath = Windows::ApplicationModel::Package::Current().InstalledLocation().Path();
-        auto mdPath = pkgPath + L"\\app.exe";
-        Windows::Storage::StorageFile mdViewer = co_await Windows::Storage::StorageFile::GetFileFromPathAsync(mdPath.c_str());
+        // copy app folder
+        if (!std::filesystem::exists(std::wstring(storageFolder.Path().c_str()) + L"\\app"))
+        {
+            auto staticFolderPath = pkgPath + L"\\app";
+            Windows::Storage::StorageFolder staticFolder = co_await Windows::Storage::StorageFolder::GetFolderFromPathAsync(staticFolderPath.c_str());
+            auto staticDest = co_await storageFolder.CreateFolderAsync(L"app", Windows::Storage::CreationCollisionOption::ReplaceExisting);
+            co_await copy_folder(staticFolder, staticDest);
+        }
 
-        // copy mdViewer to temp folder
-        co_await mdViewer.CopyAsync(storageFolder, L"app.exe", Windows::Storage::NameCollisionOption::ReplaceExisting);
+        // copy program thumbnails
+        std::filesystem::create_directory((local + L"\\app\\static\\img").c_str());
+        SmartMode::ProgramManager::Get();
 
         // create availiable port
         m_port = createPort();
 
         // run markdown viewer server
-        CreateProcess((temp + L"\\app.exe").c_str(), (LPWSTR)(std::wstring(L"\"app\" --key ") + m_wkey + std::wstring(L" --port ") + std::to_wstring(m_port) + std::wstring(L" --file ") + fNameW).c_str(), NULL, NULL, FALSE, CREATE_NO_WINDOW, NULL, NULL, &si, &pi);
+        CreateProcess((local + L"\\app\\app.exe").c_str(), (LPWSTR)(std::wstring(L"\"app\" --key ") + m_wkey + std::wstring(L" --port ") + std::to_wstring(m_port) + std::wstring(L" --file ") + fNameW).c_str(), NULL, NULL, FALSE, CREATE_NO_WINDOW, NULL, NULL, &si, &pi);
+#else
+        m_port = 5000;
+#endif
 
         // connect client
         CLIENT.connect("http://localhost:" + std::to_string(m_port));

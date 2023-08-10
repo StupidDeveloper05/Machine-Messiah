@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>md viewer</title>
+
+    <link href="/static/stylesheets/prism.css" rel="stylesheet" />
+	<link href="/static/stylesheets/github-markdown.css" rel="stylesheet">
+    <link href="/static/stylesheets/style.css" rel="stylesheet">
+
+    <script src="/static/js/browser/diffDOM.js"></script>
+    <script src="/static/js/prism.js"></script>
+    <script src="https://cdn.jsdelivr.net/remarkable/1.7.1/remarkable.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.2.4/jquery.min.js"></script>
+    <script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/socket.io/4.6.1/socket.io.min.js"></script>
+    <script>
+        function mdtohtml(row_text){const md = new Remarkable(); return md.render(row_text);}
+        var isBottom = true;
+        window.addEventListener("scroll", function(){
+            isBottom = window.innerHeight + Math.round(window.scrollY) >= document.body.offsetHeight;
+        });
+        document.addEventListener("DOMContentLoaded", function(){
+            var sock = io.connect("http://" + document.domain + ":" + location.port);
+            sock.on('message', function(msg){
+                if (msg.uuid == "{{UUID|safe}}")
+                {
+                    if(msg.type === 'assistant'){
+                        if (msg.status === 'running'){
+                            var content = mdtohtml(msg.msg);
+                            $(".markdown-body").last().html(content);
+                        }
+                        else if (msg.status === 'start'){
+                            var content = $('<div class="chatting-card-assistant"><div class="markdown-body">'+ mdtohtml(msg.msg) +'</div></div>');
+                            $('#chatList').append(content);
+                        }
+                        $(".markdown-body").last().find("code").each(function(index, item) {
+                            Prism.highlightElement(item);
+                        });
+                        $('a').attr('target', '_blank');
+                        $(".markdown-body").last().find("code").removeClass('language-none');
+                    }else{
+                        $('#chatList').append($('<div class="right-align">').append($('<div class="chatting-card-user">').append($('<pre class="anti-xss-pre">').text(msg.msg))));
+                    }
+                    if (isBottom)
+                        window.scrollTo({top: $("#chatList").prop('scrollHeight')});
+                    console.log('Received Message : ' + msg.type);
+                }
+            });
+        });
+    </script>
+</head>
+<body>
+    <div id="chatList"></div>    
+    <script>
+        var arr = {{Data|tojson}};
+        arr.forEach((list, index) => {
+            if (list[0] == "assistant") {
+                var content = $('<div class="chatting-card-assistant"><div class="markdown-body">'+ mdtohtml(list[1]) +'</div></div>');
+                $('#chatList').append(content);
+            }
+            else {
+                $('#chatList').append($('<div class="right-align">').append($('<div class="chatting-card-user">').append($('<pre class="anti-xss-pre">').text(list[1]))));
+            }
+        });
+        $("code").each(function(index, item) {
+            Prism.highlightElement(item);
+        });
+        $("code").removeClass('language-none');
+        $('a').attr('target', '_blank');
+    </script>
+</body>
+</html>

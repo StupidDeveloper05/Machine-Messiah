@@ -163,10 +163,12 @@
     </Lib>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="HttpRequest.h" />
     <ClInclude Include="OpenAI.h" />
     <ClInclude Include="OpenAIInstanced.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="HttpRequest.cpp" />
     <ClCompile Include="jsoncpp.cpp" />
     <ClCompile Include="OpenAI.cpp" />
     <ClCompile Include="OpenAIInstanced.cpp" />

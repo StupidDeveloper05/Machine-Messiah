@@ -10,6 +10,7 @@
 #include <winrt/Microsoft.UI.Windowing.h>
 
 #include <Client.h>
+
 #include "FileSystem.h"
 #include "OpenAIStorage.h"
 
@@ -27,7 +28,9 @@ MDView::Client CLIENT;
 namespace winrt::MainApplication::implementation
 {
 
-    MainWindow::MainWindow()
+    MainWindow::MainWindow(unsigned short port, hstring const& key)
+        : m_port(port)
+        , m_wkey(key)
     {
         InitializeComponent();
 
@@ -37,37 +40,28 @@ namespace winrt::MainApplication::implementation
         ExtendsContentIntoTitleBar(true);
         SetTitleBar(AppTitleBar());
 
-        voice().Content(box_value(L"음성 명령"));
         chat().Content(box_value(L"채팅"));
+        mainNav().Header(box_value(L"채팅 목록"));
 
-        mainNav().Header(box_value(L"음성 명령"));
-        contentFrame().Navigate(xaml_typename<MainApplication::VoiceCommand>());
+        m_key.assign(m_wkey.begin(), m_wkey.end());
+
+        Windows::Foundation::Collections::ValueSet parameters;
+        parameters.Insert(L"port", box_value(m_port));
+        parameters.Insert(L"key", box_value(m_wkey.c_str()));
+        contentFrame().Navigate(xaml_typename<MainApplication::ChattingList>(), parameters);
     }
 
     void MainWindow::mainNav_SelectionChanged(winrt::Microsoft::UI::Xaml::Controls::NavigationView const& sender, winrt::Microsoft::UI::Xaml::Controls::NavigationViewSelectionChangedEventArgs const& args)
     {
-        if (args.IsSettingsSelected())
-        {
-            sender.Header(box_value(L"설정"));
-            contentFrame().Navigate(xaml_typename<MainApplication::Settings>());
-        }
-        else
-        {
-            auto itemTag = args.SelectedItem().as<Controls::NavigationViewItem>().Tag().as<hstring>();
+        auto itemTag = args.SelectedItem().as<Controls::NavigationViewItem>().Tag().as<hstring>();
 
-            if (itemTag == L"Voice Command")
-            {
-                sender.Header(box_value(L"음성 명령"));
-                contentFrame().Navigate(xaml_typename<MainApplication::VoiceCommand>());
-            }
-            else if (itemTag == L"Chat GPT")
-            {
-                sender.Header(box_value(L"채팅 목록"));
-                Windows::Foundation::Collections::ValueSet parameters;
-                parameters.Insert(L"port", box_value(m_port));
-                parameters.Insert(L"key", box_value(m_wkey.c_str()));
-                contentFrame().Navigate(xaml_typename<MainApplication::ChattingList>(), parameters);
-            }
+        if (itemTag == L"Chat GPT")
+        {
+            sender.Header(box_value(L"채팅 목록"));
+            Windows::Foundation::Collections::ValueSet parameters;
+            parameters.Insert(L"port", box_value(m_port));
+            parameters.Insert(L"key", box_value(m_wkey.c_str()));
+            contentFrame().Navigate(xaml_typename<MainApplication::ChattingList>(), parameters);
         }
     }
 

@@ -8,12 +8,6 @@
     <Page Include="ChattingList.xaml">
       <Filter>Pages</Filter>
     </Page>
-    <Page Include="VoiceCommand.xaml">
-      <Filter>Pages</Filter>
-    </Page>
-    <Page Include="Settings.xaml">
-      <Filter>Pages</Filter>
-    </Page>
     <Page Include="SplashScreen.xaml">
       <Filter>Splash Screen</Filter>
     </Page>
@@ -37,6 +31,12 @@
     <ClCompile Include="OpenAIStorage.cpp">
       <Filter>OpenAI</Filter>
     </ClCompile>
+    <ClCompile Include="FunctionManager.cpp">
+      <Filter>FunctionManager</Filter>
+    </ClCompile>
+    <ClCompile Include="ProgramManager.cpp">
+      <Filter>FunctionManager</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="pch.h" />
@@ -54,6 +54,12 @@
     </ClInclude>
     <ClInclude Include="OpenAIStorage.h">
       <Filter>OpenAI</Filter>
+    </ClInclude>
+    <ClInclude Include="FunctionManager.h">
+      <Filter>FunctionManager</Filter>
+    </ClInclude>
+    <ClInclude Include="ProgramManager.h">
+      <Filter>FunctionManager</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -103,6 +109,9 @@
     </Filter>
     <Filter Include="Splash Screen">
       <UniqueIdentifier>{124b0b32-2903-4503-94dd-f88cf633500a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="FunctionManager">
+      <UniqueIdentifier>{005f3906-7cbf-4912-ace7-e924f3492724}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>

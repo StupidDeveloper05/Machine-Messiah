@@ -6,6 +6,6 @@ namespace MainApplication
     [default_interface]
     runtimeclass MainWindow : Microsoft.UI.Xaml.Window
     {
-        MainWindow();
+        MainWindow(UInt16 port, String key);
     }
 }

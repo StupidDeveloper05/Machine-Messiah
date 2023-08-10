@@ -4,18 +4,19 @@ from flask import request
 from engineio.async_drivers import gevent
 import socket
 
+import os
+import win32api
 import json
 import time
 import argparse
 
 parser = argparse.ArgumentParser()
-parser.add_argument("--key", type=str);
-parser.add_argument("--port", type=int);
-parser.add_argument("--file", type=str);
+parser.add_argument("--key", type=str)
+parser.add_argument("--port", type=int)
+parser.add_argument("--file", type=str)
 args = parser.parse_args()
 
 ACCESS_KEY = args.key;
-print(f"ACCESS KEY is {ACCESS_KEY}")
 
 app = Flask(__name__)   
 socket_io = SocketIO(app, cors_allowed_origins="*")
@@ -71,17 +72,26 @@ def shutdown():
 @socket_io.on("message")
 def request_io(msg):
     if msg["key"] == ACCESS_KEY:
-        if msg['uuid'] not in Data:
-            Data[msg['uuid']] = []
-        if msg["status"] == "running":
-            Data[msg['uuid']][-1] = (msg["type"], msg["msg"])
+        if (msg["type"] != "clear_until_user"):
+            if msg['uuid'] not in Data:
+                Data[msg['uuid']] = []
+            if msg["status"] == "running":
+                Data[msg['uuid']][-1] = (msg["type"], msg["msg"])
+            else:
+                Data[msg['uuid']].append((msg["type"], msg["msg"]))
         else:
-            Data[msg['uuid']].append((msg["type"], msg["msg"]))
-        if msg["clear"]:
-            Data[msg['uuid']] = []
-        else:
-            send(msg, broadcast=True)
+            for i in range(len(Data[msg['uuid']]) - 1, 0, -1):
+                if  Data[msg['uuid']][i][0] == "user":
+                    break
+                else:
+                   del Data[msg['uuid']][i]
+                   
+        send(msg, broadcast=True)
     print(f"[{time.strftime('%Y.%m.%d %p %I:%M:%S')}] {msg['type'].upper()} : {msg['status']}")
-
+    
+@socket_io.on("run_program")
+def run_program(msg):
+    win32api.ShellExecute(0, "open", "explorer.exe", "shell:appsFolder\\" + msg, None, 0)
+    
 if __name__ == "__main__":
     socket_io.run(app, port=args.port, use_reloader=False)

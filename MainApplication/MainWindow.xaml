@@ -28,13 +28,8 @@
             </Grid>
         </Grid>
 
-        <NavigationView x:Name="mainNav" Grid.Row="1" Header="This is Header Text" PaneDisplayMode="LeftCompact" IsBackButtonVisible="Collapsed"  SelectionChanged="mainNav_SelectionChanged">
+        <NavigationView x:Name="mainNav" Grid.Row="1" Header="This is Header Text" PaneDisplayMode="LeftCompact" IsBackButtonVisible="Collapsed"  SelectionChanged="mainNav_SelectionChanged" IsSettingsVisible="False">
             <NavigationView.MenuItems>
-                <NavigationViewItem x:Name="voice" Tag="Voice Command" >
-                    <NavigationViewItem.Icon>
-                        <FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xEFA9;"/>
-                    </NavigationViewItem.Icon>
-                </NavigationViewItem>
                 <NavigationViewItem x:Name="chat" Tag="Chat GPT" >
                     <NavigationViewItem.Icon>
                         <FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE8F2;"/>
@@ -43,6 +38,6 @@
             </NavigationView.MenuItems>
             <Frame Margin="0,0,0,0" x:Name="contentFrame" />
         </NavigationView>
-        
+
     </Grid>
 </Window>

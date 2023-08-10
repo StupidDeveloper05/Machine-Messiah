@@ -1,7 +1,9 @@
 #include "pch.h"
 #include "OpenAIStorage.h"
 #include "FileSystem.h"
+#include "FunctionManager.h"
 
+#include <atlstr.h>
 #include <algorithm>
 
 namespace OpenAI
@@ -39,11 +41,12 @@ namespace OpenAI
 	{
 		if (openAISessions.size() == 0)
 		{
-			auto oai = new OpenAI(DATA["API_KEY"].asCString(), DATA["ORGANZATION_ID"].asCString());
+			auto oai = new OpenAI(DATA["API_KEY"].asCString());
 			_msgData* data = new _msgData(uuid, p_chatInfo);
 			data->curl = oai->GetHandel();
 
 			oai->SetWriteFunction(OpenAIStorage::writeFunctionChat);
+			oai->SetFinishCallback(OpenAIStorage::finishCallback);
 			oai->SetUserPointer(data);
 			openAISessions.push_back(oai);
 			std::thread(&OpenAI::Create, openAISessions[0], eType, json_body).detach();
@@ -64,6 +67,7 @@ namespace OpenAI
 					curl_easy_setopt(data->curl, CURLOPT_TIMEOUT_MS, 0);
 
 					session->SetWriteFunction(OpenAIStorage::writeFunctionChat);
+					session->SetFinishCallback(OpenAIStorage::finishCallback);
 					session->SetUserPointer(data);
 					std::thread(&OpenAI::Create, session, eType, json_body).detach();
 					break;
@@ -71,11 +75,12 @@ namespace OpenAI
 			}
 			if (!found)
 			{
-				auto oai = new OpenAI(DATA["API_KEY"].asCString(), DATA["ORGANZATION_ID"].asCString());
+				auto oai = new OpenAI(DATA["API_KEY"].asCString());
 				_msgData* data = new _msgData(uuid, p_chatInfo);
 				data->curl = oai->GetHandel();
 
 				oai->SetWriteFunction(OpenAIStorage::writeFunctionChat);
+				oai->SetFinishCallback(OpenAIStorage::finishCallback);
 				oai->SetUserPointer(data);
 				openAISessions.push_back(oai);
 				std::thread(&OpenAI::Create, openAISessions[openAISessions.size() - 1], eType, json_body).detach();
@@ -108,22 +113,23 @@ namespace OpenAI
 
 		_msgData* msgData = static_cast<_msgData*>(data);
 
+		// 해당 채팅이 삭제 될 때 처리
 		if (msgData->chatInfo->del)
 		{
 			curl_easy_setopt(msgData->curl, CURLOPT_TIMEOUT_MS, 1);
-			msgData->chatInfo->isRunning = false;
-			msgData->chatInfo->isBegin = true;
-			msgData->chatInfo->started = false;
 			return size * nmemb;
 		}
 
+		// 해당 채팅이 중지 되었을 때 처리
 		if (msgData->chatInfo->stop)
 		{
 			curl_easy_setopt(msgData->curl, CURLOPT_TIMEOUT_MS, 1);
-			msgData->chatInfo->isRunning = false;
-			msgData->chatInfo->isBegin = true;
-			msgData->chatInfo->started = false;
 			SAFE_ACCESS;
+			if (DATA["chatting"][msgData->uuid]["data"][DATA["chatting"][msgData->uuid]["data"].size() - 1]["role"] == "function")
+			{
+				Json::Value* ptr = nullptr;
+				DATA["chatting"][msgData->uuid]["data"].removeIndex(DATA["chatting"][msgData->uuid]["data"].size() - 1, ptr);
+			}
 			DATA["chatting"][msgData->uuid]["data"].append(CreateMessage("assistant", msgData->msg.c_str()));
 			SaveData();
 			return size * nmemb;
@@ -140,33 +146,56 @@ namespace OpenAI
 						bool parsing_successful = reader->parse(generated_response.c_str(), generated_response.c_str() + generated_response.size(), &root, &errors);
 						if (parsing_successful)
 						{
-							std::string utf8 = root["choices"][0]["delta"].get("content", "").asCString();
-							msgData->msg += utf8;
+							if (!root["choices"][0]["delta"].isMember("function_call"))
+							{
+								std::string utf8 = root["choices"][0]["delta"].get("content", "").asCString();
+								msgData->msg += utf8;
 
-							auto msg = MDView::CreateMessage(
-								m_key,
-								msgData->uuid.c_str(),
-								msgData->msg,
-								"assistant",
-								msgData->chatInfo->isBegin ? "start" : "running",
-								false
-							);
-							if (CLIENT.isConnected())
-								CLIENT.send(msg);
+								if (msgData->msg != "")
+								{
+									auto msg = MDView::CreateMessage(
+										m_key,
+										msgData->uuid.c_str(),
+										msgData->msg,
+										"assistant",
+										msgData->chatInfo->isBegin ? "start" : "running"
+									);
+									if (CLIENT.isConnected())
+										CLIENT.send(msg);
 
-							msgData->chatInfo->isBegin = false;
-							msgData->chatInfo->started = true;
+									msgData->chatInfo->isBegin = false;
+									msgData->chatInfo->started = true;
+								}
+							}
+							else
+							{
+								// function called
+								if (root["choices"][0]["delta"]["function_call"].isMember("name"))
+									msgData->chatInfo->funcInfo.name = root["choices"][0]["delta"]["function_call"]["name"].asCString();
+								msgData->chatInfo->funcInfo.arguments += root["choices"][0]["delta"]["function_call"].get("arguments", "").asCString();
+							}
 						}
 					}
 				}
 				catch (std::exception&)
 				{
-					msgData->chatInfo->isRunning = false;
-					msgData->chatInfo->isBegin = true;
-					msgData->chatInfo->started = false;
-					SAFE_ACCESS;
-					DATA["chatting"][msgData->uuid]["data"].append(CreateMessage("assistant", msgData->msg.c_str()));
-					SaveData();
+					if (msgData->chatInfo->funcInfo.name.empty())
+					{
+						SAFE_ACCESS;
+						// 마지막 role이 function이면 제거 -> 이미 실행된 함수는 요청하지 않는 특성 해결 -> 항상 함수 실행하도록
+						if (DATA["chatting"][msgData->uuid]["data"][DATA["chatting"][msgData->uuid]["data"].size() - 1]["role"] == "function")
+						{
+							Json::Value* ptr = nullptr;
+							DATA["chatting"][msgData->uuid]["data"].removeIndex(DATA["chatting"][msgData->uuid]["data"].size() - 1, ptr);
+						}
+						DATA["chatting"][msgData->uuid]["data"].append(CreateMessage("assistant", msgData->msg.c_str()));
+						SaveData();
+					}
+					else
+					{
+						// 함수 실행
+						SmartMode::FunctionManager::Get()->Call(msgData->chatInfo->funcInfo.name, msgData->chatInfo->funcInfo.arguments, msgData);
+					}
 				}
 			}
 		}
@@ -180,8 +209,7 @@ namespace OpenAI
 					msgData->uuid.c_str(),
 					std::string("> ") + std::string(root["error"]["message"].asCString()),
 					"assistant",
-					"start",
-					false
+					"start"
 				);
 				if (CLIENT.isConnected())
 					CLIENT.send(msg);
@@ -189,5 +217,13 @@ namespace OpenAI
 		}
 
 		return size * nmemb;
+	}
+	
+	void OpenAIStorage::finishCallback(void* userPtr)
+	{
+		_msgData* msgData = static_cast<_msgData*>(userPtr);
+		msgData->chatInfo->isRunning = false;
+		msgData->chatInfo->isBegin = true;
+		msgData->chatInfo->started = false;
 	}
 }

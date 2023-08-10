@@ -10,10 +10,9 @@ namespace OpenAI {
 	// 													//
 	//////////////////////////////////////////////////////
 
-	OpenAI::OpenAI(const std::string& api_key, const std::string& _authorization)
+	OpenAI::OpenAI(const std::string& api_key)
 	{
 		apiKey = api_key;
-		authorization = _authorization;
 		mainUrl = "https://api.openai.com/v1/";
 		isAvailable = true;
 
@@ -33,6 +32,8 @@ namespace OpenAI {
 		SetEndPoint(eType);
 		auto result = MakeRequest(json_body);
 		isAvailable = true;
+		if (finish_callback != nullptr)
+			finish_callback(userPtr);
 		return result;
 	}
 
@@ -42,6 +43,11 @@ namespace OpenAI {
 			write_func = customFuncPtr;
 		else
 			write_func = writeFunctionDefault;
+	}
+
+	void OpenAI::SetFinishCallback(FinishFunc customFuncPtr)
+	{
+		finish_callback = customFuncPtr;
 	}
 
 	void OpenAI::SetUserPointer(void* _userPtr)
@@ -98,7 +104,6 @@ namespace OpenAI {
 		// header settings
 		curl_slist* headers = NULL;
 		headers = curl_slist_append(headers, std::string("Authorization: Bearer " + apiKey).c_str());
-		headers = curl_slist_append(headers, std::string("OpenAI-Organization: " + authorization).c_str());
 		headers = curl_slist_append(headers, std::string("Content-Type: " + contentType).c_str());
 
 		// process mutipart form data
@@ -165,11 +170,13 @@ namespace OpenAI {
 		return size * nmemb;
 	}
 
-	Json::Value CreateMessage(const char* role, const char* content)
+	Json::Value CreateMessage(const char* role, const char* content, const char* name)
 	{
 		Json::Value message;
 		message["role"] = role;
 		message["content"] = content;
+		if (name != "")
+			message["name"] = name;
 		return message;
 	}
 }

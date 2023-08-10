@@ -14,6 +14,7 @@ namespace winrt::MainApplication::implementation
         void Splash(winrt::Windows::Foundation::IInspectable const&, winrt::Windows::Foundation::IInspectable const&);
         Windows::Foundation::IAsyncAction open_markdown_server_and_load_data_async();
         Windows::Foundation::IAsyncAction Window_Activated(winrt::Windows::Foundation::IInspectable const& sender, winrt::Microsoft::UI::Xaml::WindowActivatedEventArgs const& args);
+        Windows::Foundation::IAsyncAction copy_folder(Windows::Storage::StorageFolder& source, Windows::Storage::StorageFolder& dest);
 
         unsigned short createPort();
         void TerminatePreviousProcess(const std::wstring& processName, const std::wstring& fullPath);

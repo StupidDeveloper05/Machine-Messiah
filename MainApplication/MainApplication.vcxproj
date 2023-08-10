@@ -131,6 +131,7 @@
     </ClInclude>
     <ClInclude Include="client.h" />
     <ClInclude Include="FileSystem.h" />
+    <ClInclude Include="FunctionManager.h" />
     <ClInclude Include="OpenAIStorage.h" />
     <ClInclude Include="pch.h" />
     <ClInclude Include="App.xaml.h">
@@ -139,19 +140,12 @@
     <ClInclude Include="MainWindow.xaml.h">
       <DependentUpon>MainWindow.xaml</DependentUpon>
     </ClInclude>
-    <ClInclude Include="Settings.xaml.h">
-      <DependentUpon>Settings.xaml</DependentUpon>
-      <SubType>Code</SubType>
-    </ClInclude>
+    <ClInclude Include="ProgramManager.h" />
     <ClInclude Include="SplashScreen.xaml.h">
       <DependentUpon>SplashScreen.xaml</DependentUpon>
       <SubType>Code</SubType>
     </ClInclude>
     <ClInclude Include="utils.h" />
-    <ClInclude Include="VoiceCommand.xaml.h">
-      <DependentUpon>VoiceCommand.xaml</DependentUpon>
-      <SubType>Code</SubType>
-    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ApplicationDefinition Include="App.xaml" />
@@ -159,13 +153,7 @@
       <SubType>Designer</SubType>
     </Page>
     <Page Include="MainWindow.xaml" />
-    <Page Include="Settings.xaml">
-      <SubType>Designer</SubType>
-    </Page>
     <Page Include="SplashScreen.xaml">
-      <SubType>Designer</SubType>
-    </Page>
-    <Page Include="VoiceCommand.xaml">
       <SubType>Designer</SubType>
     </Page>
   </ItemGroup>
@@ -176,6 +164,7 @@
       <SubType>Code</SubType>
     </ClCompile>
     <ClCompile Include="FileSystem.cpp" />
+    <ClCompile Include="FunctionManager.cpp" />
     <ClCompile Include="OpenAIStorage.cpp" />
     <ClCompile Include="pch.cpp">
       <PrecompiledHeader>Create</PrecompiledHeader>
@@ -187,16 +176,9 @@
       <DependentUpon>MainWindow.xaml</DependentUpon>
     </ClCompile>
     <ClCompile Include="$(GeneratedFilesDir)module.g.cpp" />
-    <ClCompile Include="Settings.xaml.cpp">
-      <DependentUpon>Settings.xaml</DependentUpon>
-      <SubType>Code</SubType>
-    </ClCompile>
+    <ClCompile Include="ProgramManager.cpp" />
     <ClCompile Include="SplashScreen.xaml.cpp">
       <DependentUpon>SplashScreen.xaml</DependentUpon>
-      <SubType>Code</SubType>
-    </ClCompile>
-    <ClCompile Include="VoiceCommand.xaml.cpp">
-      <DependentUpon>VoiceCommand.xaml</DependentUpon>
       <SubType>Code</SubType>
     </ClCompile>
   </ItemGroup>
@@ -214,16 +196,8 @@
       <SubType>Code</SubType>
       <DependentUpon>MainWindow.xaml</DependentUpon>
     </Midl>
-    <Midl Include="Settings.idl">
-      <DependentUpon>Settings.xaml</DependentUpon>
-      <SubType>Code</SubType>
-    </Midl>
     <Midl Include="SplashScreen.idl">
       <DependentUpon>SplashScreen.xaml</DependentUpon>
-      <SubType>Code</SubType>
-    </Midl>
-    <Midl Include="VoiceCommand.idl">
-      <DependentUpon>VoiceCommand.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Midl>
   </ItemGroup>
