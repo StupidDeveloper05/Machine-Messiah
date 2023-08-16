@@ -99,7 +99,7 @@ namespace SmartMode
 			{
 				std::string location = arguments["location"].asCString();
 				location.erase(remove(location.begin(), location.end(), ' '), location.end());
-				std::string url = "https://api.openweathermap.org/data/2.5/weather?q=" + location + "&appid=key&units=metric";
+				std::string url = "https://api.openweathermap.org/data/2.5/weather?q=" + location + "&appid=70ecae3ae97fcc7b7f1fe81da988dc0f&units=metric";
 				HttpRequest request;
 				auto result = request.Get(url);
 
