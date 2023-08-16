@@ -32,6 +32,7 @@ namespace OpenAI
 		std::string	msg;
 		CURL*		curl;
 		_chatInfo*	chatInfo;
+		OpenAI*		_this;
 
 		_msgData() = default;
 		_msgData(const std::string& _uuid, _chatInfo* p_chatInfo)

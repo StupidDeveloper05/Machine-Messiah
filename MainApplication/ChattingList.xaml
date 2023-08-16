@@ -74,7 +74,7 @@
                     <ColumnDefinition Width="48"/>
                 </Grid.ColumnDefinitions>
                 <StackPanel Grid.Column="0" VerticalAlignment="Bottom">
-                    <TextBox x:Name="input" TextWrapping="Wrap" FontSize="17" Padding="10" MinHeight="96" MaxHeight="250"  MaxLength="2000" TextChanged="input_TextChanged" KeyDown="input_KeyDown" SizeChanged="input_SizeChanged"></TextBox>
+                    <TextBox x:Name="input" Margin="1" TextWrapping="Wrap" FontSize="17" Padding="10" MinHeight="94" MaxHeight="250" MaxLength="2000" TextChanged="input_TextChanged" KeyDown="input_KeyDown" SizeChanged="input_SizeChanged"/>
                 </StackPanel>
                 <StackPanel Grid.Column="1" VerticalAlignment="Bottom">
                     <Button x:Name="Tool" Width="46" Height="46" Margin="1" Click="Tool_Click">

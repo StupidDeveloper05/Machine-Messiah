@@ -72,6 +72,16 @@ namespace SmartMode
 		{
 			if (name == "get_current_time")
 			{
+				char* week_days[7] = {
+					"sunday",
+					"monday",
+					"tuesday",
+					"wednesday",
+					"thursday",
+					"friday",
+					"saturday"
+				};
+
 				Json::Value info;
 				time_t timer = time(NULL);
 				tm* t = localtime(&timer);
@@ -81,7 +91,7 @@ namespace SmartMode
 				info["hour"] = t->tm_hour;
 				info["minute"] = t->tm_min;
 				info["second"] = t->tm_sec;
-				info["day_of_the_week"] = t->tm_wday;
+				info["day_of_the_week"] = week_days[t->tm_wday];
 
 				Process(info, _pData);
 			}
@@ -89,7 +99,7 @@ namespace SmartMode
 			{
 				std::string location = arguments["location"].asCString();
 				location.erase(remove(location.begin(), location.end(), ' '), location.end());
-				std::string url = "https://api.openweathermap.org/data/2.5/weather?q=" + location + "&appid=apikey&units=metric";
+				std::string url = "https://api.openweathermap.org/data/2.5/weather?q=" + location + "&appid=key&units=metric";
 				HttpRequest request;
 				auto result = request.Get(url);
 

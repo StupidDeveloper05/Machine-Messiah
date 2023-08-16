@@ -44,6 +44,7 @@ namespace OpenAI
 			auto oai = new OpenAI(DATA["API_KEY"].asCString());
 			_msgData* data = new _msgData(uuid, p_chatInfo);
 			data->curl = oai->GetHandel();
+			data->_this = oai;
 
 			oai->SetWriteFunction(OpenAIStorage::writeFunctionChat);
 			oai->SetFinishCallback(OpenAIStorage::finishCallback);
@@ -64,8 +65,10 @@ namespace OpenAI
 					data->msg = "";
 					data->curl = session->GetHandel();
 					data->chatInfo = p_chatInfo;
+					data->_this = session;
 					curl_easy_setopt(data->curl, CURLOPT_TIMEOUT_MS, 0);
-
+					
+					session->apiKey = DATA["API_KEY"].asCString();
 					session->SetWriteFunction(OpenAIStorage::writeFunctionChat);
 					session->SetFinishCallback(OpenAIStorage::finishCallback);
 					session->SetUserPointer(data);
@@ -78,6 +81,7 @@ namespace OpenAI
 				auto oai = new OpenAI(DATA["API_KEY"].asCString());
 				_msgData* data = new _msgData(uuid, p_chatInfo);
 				data->curl = oai->GetHandel();
+				data->_this = oai;
 
 				oai->SetWriteFunction(OpenAIStorage::writeFunctionChat);
 				oai->SetFinishCallback(OpenAIStorage::finishCallback);
@@ -171,7 +175,10 @@ namespace OpenAI
 							{
 								// function called
 								if (root["choices"][0]["delta"]["function_call"].isMember("name"))
+								{
 									msgData->chatInfo->funcInfo.name = root["choices"][0]["delta"]["function_call"]["name"].asCString();
+									msgData->_this->SetFinishCallback(nullptr);
+								}
 								msgData->chatInfo->funcInfo.arguments += root["choices"][0]["delta"]["function_call"].get("arguments", "").asCString();
 							}
 						}

@@ -40,6 +40,7 @@ namespace OpenAI {
 
 	public:
 		std::string response;
+		std::string apiKey;
 
 	private:
 		// user pointer
@@ -49,9 +50,6 @@ namespace OpenAI {
 		std::string mainUrl;
 		std::string endpoint;
 		std::string contentType;
-
-		// api key
-		std::string apiKey;
 
 		// context
 		CURL* curl;

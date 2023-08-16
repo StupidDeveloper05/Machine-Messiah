@@ -69,7 +69,7 @@ namespace winrt::MainApplication::implementation
         }
 
         // 한글때문에 여기서 처리
-        input().PlaceholderText(L"질문을 입력하세요. (줄바꿈 Shift + Enter)");
+        input().PlaceholderText(L"질문을 입력하세요. (줄바꿈: Shift + Enter, 음성 입력: Windows + H)");
         createApiKey().Content(box_value(L"API 키 생성하기"));
 
         // 툴 팁 설정
